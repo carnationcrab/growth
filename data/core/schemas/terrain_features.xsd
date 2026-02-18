@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="terrain_features">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="terrain_feature" type="TerrainFeatureDef" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="TerrainFeatureDef">
+    <xs:sequence>
+      <xs:element name="surface_layer" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="surface_id" type="xs:string" use="required"/>
+          <xs:attribute name="depth_min" type="xs:decimal" use="optional"/>
+          <xs:attribute name="depth_max" type="xs:decimal" use="optional"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="feature_id" type="xs:ID" use="required"/>
+    <xs:attribute name="display_name" type="xs:string" use="required"/>
+    <xs:attribute name="area_pattern_id" type="xs:string" use="optional"/>
+    <xs:attribute name="radius_cells" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="elevation_delta" type="xs:decimal" use="optional"/>
+    <xs:attribute name="weight" type="xs:nonNegativeInteger" use="optional" default="1"/>
+  </xs:complexType>
+</xs:schema>

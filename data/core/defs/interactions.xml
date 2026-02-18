@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- InteractionDefs: UI hints and bindings for tool actions (harvest, prune, uproot, etc.). -->
+<interactions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../schemas/interactions.xsd">
+  <interaction_def interaction_id="harvest_plant" action_type="harvest" display_name="Harvest"
+                  condition_set_id="entity_harvestable" tool_id="scythe" ui_hint="Harvest when fruiting or mature."/>
+  <interaction_def interaction_id="water_soil" action_type="water" display_name="Water"
+                  condition_set_id="cell_buildable" tool_id="watering_can" ui_hint="Apply water to soil."/>
+  <interaction_def interaction_id="till_soil" action_type="dig" display_name="Till"
+                  condition_set_id="cell_is_soil" tool_id="hoe" ui_hint="Till bare soil for planting."/>
+  <interaction_def interaction_id="dig_soil" action_type="dig" display_name="Dig"
+                  condition_set_id="cell_diggable" tool_id="shovel" ui_hint="Remove tilled/mulch surface."/>
+  <interaction_def interaction_id="rake_ground" action_type="rake" display_name="Rake"
+                  condition_set_id="cell_passable" tool_id="rake" ui_hint="Smooth and reduce disturbance."/>
+  <interaction_def interaction_id="uproot_plant" action_type="uproot" display_name="Uproot"
+                  condition_set_id="entity_plant" tool_id="shovel" ui_hint="Remove plant from cell."/>
+  <interaction_def interaction_id="prune_plant" action_type="prune" display_name="Prune"
+                  condition_set_id="entity_prunable" tool_id="scythe" ui_hint="Prune branches or spent growth."/>
+</interactions>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<buildings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../schemas/buildings.xsd">
+  <building building_id="compost_bin" display_name="Compost bin" footprint_pattern_id="pattern_2x2"
+            placement_rules_id="flat_buildable" construction_recipe_id="recipe_compost_bin"
+            deterioration_profile_id="deterioration_wood" visual_prefab_tag="building_compost_bin">
+    <ongoing_effects>
+      <effect_ref effect_id="compost_tick" magnitude="1" duration="0"/>
+    </ongoing_effects>
+  </building>
+  <building building_id="rain_barrel" display_name="Rain barrel" footprint_pattern_id="pattern_1x1"
+            placement_rules_id="flat_buildable" construction_recipe_id="recipe_rain_barrel"
+            deterioration_profile_id="deterioration_wood" visual_prefab_tag="building_rain_barrel">
+    <ongoing_effects>
+      <effect_ref effect_id="collect_rainwater"/>
+      <effect_ref effect_id="shade_cell" magnitude="20"/>
+    </ongoing_effects>
+  </building>
+  <building building_id="shed" display_name="Shed" footprint_pattern_id="pattern_3x3"
+            placement_rules_id="flat_buildable" construction_recipe_id="recipe_shed"
+            deterioration_profile_id="deterioration_wood" visual_prefab_tag="building_shed">
+    <ongoing_effects>
+      <effect_ref effect_id="shade_cell" magnitude="150"/>
+    </ongoing_effects>
+  </building>
+</buildings>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui_assets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:noNamespaceSchemaLocation="../schemas/ui_assets.xsd">
+  <asset asset_id="panel_card" path="res://godot/assets/materials/JPG/BigPanel.jpg"/>
+  <asset asset_id="button_primary" path="res://godot/assets/materials/PNG/Button01.png"/>
+  <asset asset_id="button_secondary" path="res://godot/assets/materials/PNG/Button02.png"/>
+</ui_assets>

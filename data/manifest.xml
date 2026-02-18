@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Root data manifest: load order and data packs. -->
+<data_manifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="core/schemas/manifest.xsd">
+  <version>1</version>
+  <load_order>
+    <pack pack_id="core" path="core/" required="true"/>
+  </load_order>
+  <mods_path>core/mods</mods_path>
+</data_manifest>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<terrain_features xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+				  xsi:noNamespaceSchemaLocation="../schemas/terrain_features.xsd">
+  <terrain_feature feature_id="rock_outcrop_small" display_name="Small rock outcrop" radius_cells="1"
+				   elevation_delta="0.2" weight="50">
+	<surface_layer surface_id="rock" depth_min="0" depth_max="1"/>
+  </terrain_feature>
+  <terrain_feature feature_id="rock_outcrop_large" display_name="Rock outcrop" area_pattern_id="pattern_2x2"
+				   radius_cells="2" elevation_delta="0.5" weight="20">
+	<surface_layer surface_id="rock" depth_min="0" depth_max="1"/>
+  </terrain_feature>
+  <terrain_feature feature_id="sand_patch" display_name="Sand patch" radius_cells="3"
+				   elevation_delta="0" weight="30">
+	<surface_layer surface_id="sand" depth_min="0" depth_max="1"/>
+  </terrain_feature>
+  <terrain_feature feature_id="low_mound" display_name="Low mound" radius_cells="4"
+				   elevation_delta="0.3" weight="40">
+	<surface_layer surface_id="bare_soil" depth_min="0" depth_max="1"/>
+  </terrain_feature>
+  <terrain_feature feature_id="mulch_patch" display_name="Mulch patch" radius_cells="2" weight="15">
+	<surface_layer surface_id="mulch" depth_min="0" depth_max="1"/>
+  </terrain_feature>
+</terrain_features>

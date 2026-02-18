@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="weather">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="weather_def" type="WeatherDef" maxOccurs="unbounded"/>
+        <xs:element name="weather_distribution" type="WeatherDistributionDef" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="WeatherDef">
+    <xs:sequence>
+      <xs:element name="tags" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="tag" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="weather_id" type="xs:ID" use="required"/>
+    <xs:attribute name="display_name" type="xs:string" use="required"/>
+    <xs:attribute name="precip_rate" type="xs:unsignedByte" use="required"/>
+    <xs:attribute name="cloudiness" type="xs:unsignedByte" use="required"/>
+    <xs:attribute name="temp_delta" type="xs:short" use="optional" default="0"/>
+    <xs:attribute name="wind_delta" type="xs:short" use="optional" default="0"/>
+    <xs:attribute name="visibility_delta" type="xs:short" use="optional" default="0"/>
+    <xs:attribute name="duration_min" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="duration_max" type="xs:nonNegativeInteger" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="WeatherDistributionDef">
+    <xs:sequence>
+      <xs:element name="entry" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="weather_id" type="xs:string" use="required"/>
+          <xs:attribute name="weight" type="xs:nonNegativeInteger" use="required"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="weather_distribution_id" type="xs:ID" use="required"/>
+    <xs:attribute name="season_id" type="xs:string" use="optional"/>
+    <xs:attribute name="biome_tag" type="xs:string" use="optional"/>
+    <xs:attribute name="elevation_band_min" type="xs:decimal" use="optional"/>
+    <xs:attribute name="elevation_band_max" type="xs:decimal" use="optional"/>
+  </xs:complexType>
+</xs:schema>

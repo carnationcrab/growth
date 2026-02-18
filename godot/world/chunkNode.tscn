@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://cChunkNode3d"]
+
+[ext_resource type="Script" path="res://godot/world/ChunkNode.gd" id="1_script"]
+
+[node name="ChunkNode" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Terrain" type="MeshInstance3D" parent="."]

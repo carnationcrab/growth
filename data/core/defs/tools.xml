@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tools xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../schemas/tools.xsd">
+  <tool tool_id="hoe" display_name="Hoe" item_id="item_hoe" durability_max="200" stamina_cost="8"
+        range_meters="1.5" area_pattern_id="pattern_single" anim_tag="anim_hoe" fx_tag="fx_dust" sound_tag="sfx_hoe">
+    <action tool_action_id="hoe_till" action_type="dig" target_type="cell" requirements_id="cell_is_soil" cooldown="1.0">
+      <effects>
+        <effect_ref effect_id="set_surface_tilled"/>
+      </effects>
+    </action>
+  </tool>
+  <tool tool_id="rake" display_name="Rake" item_id="item_rake" durability_max="150" stamina_cost="5"
+        range_meters="1.5" area_pattern_id="pattern_three_line" anim_tag="anim_rake" sound_tag="sfx_rake">
+    <action tool_action_id="rake_surface" action_type="rake" target_type="cell" requirements_id="cell_passable" cooldown="0.8">
+      <effects>
+        <effect_ref effect_id="reduce_disturbance"/>
+      </effects>
+    </action>
+  </tool>
+  <tool tool_id="watering_can" display_name="Watering can" item_id="item_watering_can" durability_max="0" stamina_cost="4"
+        range_meters="1.2" area_pattern_id="pattern_single" anim_tag="anim_pour" fx_tag="fx_water" sound_tag="sfx_water">
+    <action tool_action_id="water_cell" action_type="water" target_type="cell" requirements_id="cell_buildable" cooldown="0.5">
+      <effects>
+        <effect_ref effect_id="add_moisture"/>
+      </effects>
+    </action>
+  </tool>
+  <tool tool_id="scythe" display_name="Scythe" item_id="item_scythe" durability_max="180" stamina_cost="12"
+        range_meters="2" area_pattern_id="pattern_arc" anim_tag="anim_scythe" sound_tag="sfx_scythe">
+    <action tool_action_id="scythe_harvest" action_type="harvest" target_type="entity" requirements_id="entity_harvestable" cooldown="1.2">
+      <effects>
+        <effect_ref effect_id="harvest_plant"/>
+        <effect_ref effect_id="damage_tool"/>
+      </effects>
+    </action>
+  </tool>
+  <tool tool_id="shovel" display_name="Shovel" item_id="item_shovel" durability_max="250" stamina_cost="15"
+        range_meters="1.2" area_pattern_id="pattern_single" anim_tag="anim_dig" fx_tag="fx_dig" sound_tag="sfx_dig">
+    <action tool_action_id="shovel_dig" action_type="dig" target_type="cell" requirements_id="cell_diggable" cooldown="1.5">
+      <effects>
+        <effect_ref effect_id="set_surface_bare"/>
+        <effect_ref effect_id="damage_tool"/>
+      </effects>
+    </action>
+  </tool>
+</tools>

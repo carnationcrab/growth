@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rivers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../schemas/rivers.xsd">
+  <river river_id="stream_small" display_name="Small stream" width_min_cells="1" width_max_cells="2"
+		 flow_rate="0.5" surface_id="bare_soil">
+	<segment width_cells="1" curve_id="curve_gentle"/>
+	<segment width_cells="2" curve_id="curve_gentle"/>
+  </river>
+  <river river_id="creek" display_name="Creek" width_min_cells="2" width_max_cells="4"
+		 flow_rate="1.0" surface_id="bare_soil">
+	<segment width_cells="2" curve_id="curve_meandering"/>
+	<segment width_cells="3" curve_id="curve_meandering"/>
+	<segment width_cells="4" curve_id="curve_meandering"/>
+  </river>
+  <river river_id="river_medium" display_name="River" width_min_cells="4" width_max_cells="8"
+		 flow_rate="2.0" surface_id="bare_soil">
+	<segment width_cells="4" curve_id="curve_meandering"/>
+	<segment width_cells="6" curve_id="curve_meandering"/>
+	<segment width_cells="8" curve_id="curve_gentle"/>
+  </river>
+</rivers>

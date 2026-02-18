@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bfuijeqnocw8p"]
+
+[ext_resource type="Script" uid="uid://totnyn0on76s" path="res://godot/build/BuildGhost.cs" id="1_ay8kt"]
+
+[node name="BuildGhost" type="Node3D" unique_id=1932375454]
+script = ExtResource("1_ay8kt")

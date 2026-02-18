@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="climate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="climate_profiles">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="climate_profile" type="ClimateProfileDef" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="season_tables">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="season_table" type="SeasonTableDef" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="seasons">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="season" type="SeasonDef" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="ClimateProfileDef">
+    <xs:sequence>
+      <xs:element name="temp_curve_id" type="xs:string"/>
+      <xs:element name="rain_curve_id" type="xs:string"/>
+      <xs:element name="wind_curve_id" type="xs:string"/>
+      <xs:element name="humidity_curve_id" type="xs:string"/>
+      <xs:element name="season_table_id" type="xs:string"/>
+    </xs:sequence>
+    <xs:attribute name="climate_profile_id" type="xs:ID" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="SeasonTableDef">
+    <xs:sequence>
+      <xs:element name="season_ref" type="SeasonRefDef" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="season_table_id" type="xs:ID" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="SeasonRefDef">
+    <xs:attribute name="season_id" type="xs:string" use="required"/>
+    <xs:attribute name="start_day_of_year" type="xs:nonNegativeInteger" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="SeasonDef">
+    <xs:attribute name="season_id" type="xs:ID" use="required"/>
+    <xs:attribute name="display_name" type="xs:string" use="required"/>
+    <xs:attribute name="day_length_hours" type="xs:decimal" use="required"/>
+    <xs:attribute name="weather_distribution_id" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:schema>

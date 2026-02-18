@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:simpleType name="LifeformType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="annual"/>
+      <xs:enumeration value="perennial"/>
+      <xs:enumeration value="shrub"/>
+      <xs:enumeration value="tree"/>
+      <xs:enumeration value="grass"/>
+      <xs:enumeration value="fungus"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="plants">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="plant" type="PlantDef" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="PlantDef">
+    <xs:sequence>
+      <xs:element name="species_tags" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="tag" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="stages" type="PlantStagesList"/>
+      <xs:element name="requirements" type="PlantRequirementsDef"/>
+      <xs:element name="reproduction" type="ReproductionDef" minOccurs="0"/>
+      <xs:element name="yields" type="YieldsList" minOccurs="0"/>
+      <xs:element name="interactions" type="InteractionsList" minOccurs="0"/>
+      <xs:element name="visuals" type="PlantVisualDef" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="plant_id" type="xs:ID" use="required"/>
+    <xs:attribute name="display_name" type="xs:string" use="required"/>
+    <xs:attribute name="lifeform" type="LifeformType" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="PlantStagesList">
+    <xs:sequence>
+      <xs:element name="stage" type="PlantStageDef" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PlantStageDef">
+    <xs:attribute name="stage_id" type="xs:string" use="required"/>
+    <xs:attribute name="stage_name" type="xs:string" use="required"/>
+    <xs:attribute name="duration_degree_days" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="duration_hours" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="size_class" type="xs:unsignedByte" use="optional"/>
+    <xs:attribute name="shade_cast" type="xs:unsignedByte" use="optional" default="0"/>
+    <xs:attribute name="root_depth_class" type="xs:unsignedByte" use="optional"/>
+    <xs:attribute name="biomass_delta" type="xs:integer" use="optional" default="0"/>
+    <xs:attribute name="visual_variant_tag" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="PlantRequirementsDef">
+    <xs:sequence>
+      <xs:element name="allowed_surfaces" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="surface_id" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="temp_min" type="xs:short" use="optional"/>
+    <xs:attribute name="temp_opt" type="xs:short" use="optional"/>
+    <xs:attribute name="temp_max" type="xs:short" use="optional"/>
+    <xs:attribute name="moisture_min" type="xs:unsignedByte" use="optional"/>
+    <xs:attribute name="moisture_opt" type="xs:unsignedByte" use="optional"/>
+    <xs:attribute name="moisture_max" type="xs:unsignedByte" use="optional"/>
+    <xs:attribute name="light_min" type="xs:unsignedByte" use="optional"/>
+    <xs:attribute name="light_opt" type="xs:unsignedByte" use="optional"/>
+    <xs:attribute name="fertility_min" type="xs:short" use="optional"/>
+    <xs:attribute name="establishment_disturbance_max" type="xs:short" use="optional"/>
+    <xs:attribute name="salinity_max" type="xs:unsignedByte" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="ReproductionDef">
+    <xs:sequence>
+      <xs:element name="germination_trigger_tags" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="tag" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="seed_production_rate" type="xs:decimal" use="required"/>
+    <xs:attribute name="seed_bank_longevity_days" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="dispersal_radius_cells" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="dispersal_mode" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="YieldsList">
+    <xs:sequence>
+      <xs:element name="yield" type="YieldDef" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="YieldDef">
+    <xs:attribute name="yield_id" type="xs:ID" use="required"/>
+    <xs:attribute name="item_id" type="xs:string" use="required"/>
+    <xs:attribute name="stage_required" type="xs:string" use="required"/>
+    <xs:attribute name="min_qty" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="max_qty" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="chance" type="xs:decimal" use="optional" default="1.0"/>
+  </xs:complexType>
+
+  <xs:complexType name="InteractionsList">
+    <xs:sequence>
+      <xs:element name="interaction" type="InteractionRuleDef" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="InteractionRuleDef">
+    <xs:attribute name="action_type" type="xs:string" use="required"/>
+    <xs:attribute name="condition_set_id" type="xs:string" use="optional"/>
+    <xs:attribute name="effects_id" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="PlantVisualDef">
+    <xs:sequence>
+      <xs:element name="stage_visual" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="stage_id" type="xs:string" use="required"/>
+          <xs:attribute name="mesh_tag" type="xs:string" use="optional"/>
+          <xs:attribute name="material_tag" type="xs:string" use="optional"/>
+          <xs:attribute name="particles_tag" type="xs:string" use="optional"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="prefab_tag" type="xs:string" use="optional"/>
+    <xs:attribute name="wind_response_tag" type="xs:string" use="optional"/>
+  </xs:complexType>
+</xs:schema>

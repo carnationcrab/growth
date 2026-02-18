@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="recipes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="recipe" type="RecipeDef" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="RecipeDef">
+    <xs:sequence>
+      <xs:element name="inputs">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="input" type="RecipeSlotDef" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="outputs">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="output" type="RecipeSlotDef" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="required_station_tags" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="tag" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="skill_tags" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="tag" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="recipe_id" type="xs:ID" use="required"/>
+    <xs:attribute name="time_to_complete" type="xs:nonNegativeInteger" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="RecipeSlotDef">
+    <xs:attribute name="item_id" type="xs:string" use="required"/>
+    <xs:attribute name="qty" type="xs:nonNegativeInteger" use="required"/>
+  </xs:complexType>
+</xs:schema>

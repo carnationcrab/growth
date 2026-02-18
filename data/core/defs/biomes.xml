@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<biomes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation="../schemas/biomes.xsd">
+  <biome biome_id="temperate_forest" display_name="Temperate forest" climate_profile_id="climate_temperate">
+	<surface_palette>
+	  <surface_id>bare_soil</surface_id>
+	  <surface_id>tilled</surface_id>
+	  <surface_id>mulch</surface_id>
+	  <surface_id>rock</surface_id>
+	</surface_palette>
+	<spawn_groups>
+	  <plant_group_ref plant_group_id="forest_understory"/>
+	  <plant_group_ref plant_group_id="forest_canopy"/>
+	</spawn_groups>
+  </biome>
+  <biome biome_id="arid_shrubland" display_name="Arid shrubland" climate_profile_id="climate_arid">
+	<surface_palette>
+	  <surface_id>bare_soil</surface_id>
+	  <surface_id>sand</surface_id>
+	  <surface_id>rock</surface_id>
+	</surface_palette>
+	<spawn_groups>
+	  <plant_group_ref plant_group_id="shrubland_pioneer"/>
+	</spawn_groups>
+  </biome>
+  <biome_plant_spawn_rule biome_id="temperate_forest" plant_group_id="forest_understory" weight="100"/>
+  <biome_plant_spawn_rule biome_id="temperate_forest" plant_group_id="forest_canopy" weight="60"/>
+  <biome_plant_spawn_rule biome_id="arid_shrubland" plant_group_id="shrubland_pioneer" weight="80"/>
+</biomes>

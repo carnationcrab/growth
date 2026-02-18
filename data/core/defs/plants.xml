@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plants xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="../schemas/plants.xsd">
+  <plant plant_id="tomato" display_name="Tomato" lifeform="annual">
+    <species_tags>
+      <tag>native</tag>
+    </species_tags>
+    <stages>
+      <stage stage_id="seed" stage_name="Seed" duration_degree_days="0" size_class="0" shade_cast="0" root_depth_class="0" biomass_delta="0" visual_variant_tag="tomato_seed"/>
+      <stage stage_id="seedling" stage_name="Seedling" duration_degree_days="150" size_class="1" shade_cast="0" root_depth_class="1" biomass_delta="1" visual_variant_tag="tomato_seedling"/>
+      <stage stage_id="vegetative" stage_name="Vegetative" duration_degree_days="400" size_class="2" shade_cast="20" root_depth_class="2" biomass_delta="5" visual_variant_tag="tomato_veg"/>
+      <stage stage_id="flowering" stage_name="Flowering" duration_degree_days="200" size_class="2" shade_cast="25" root_depth_class="2" biomass_delta="2" visual_variant_tag="tomato_flower"/>
+      <stage stage_id="fruiting" stage_name="Fruiting" duration_degree_days="350" size_class="3" shade_cast="40" root_depth_class="2" biomass_delta="10" visual_variant_tag="tomato_fruit"/>
+    </stages>
+    <requirements temp_min="10" temp_opt="24" temp_max="35" moisture_min="40" moisture_opt="70" moisture_max="95"
+                 light_min="100" light_opt="255" fertility_min="20" establishment_disturbance_max="30">
+      <allowed_surfaces>
+        <surface_id>bare_soil</surface_id>
+        <surface_id>tilled</surface_id>
+        <surface_id>mulch</surface_id>
+      </allowed_surfaces>
+    </requirements>
+    <reproduction seed_production_rate="50" seed_bank_longevity_days="730" dispersal_radius_cells="0" dispersal_mode="gravity">
+      <germination_trigger_tags><tag>disturbance</tag></germination_trigger_tags>
+    </reproduction>
+    <yields>
+      <yield yield_id="tomato_fruit" item_id="item_tomato" stage_required="fruiting" min_qty="1" max_qty="5" chance="1.0"/>
+      <yield yield_id="tomato_seed" item_id="item_tomato_seeds" stage_required="fruiting" min_qty="0" max_qty="20" chance="0.8"/>
+    </yields>
+    <interactions>
+      <interaction action_type="harvest" effects_id="harvest_tomato"/>
+      <interaction action_type="uproot" effects_id="uproot_plant"/>
+    </interactions>
+    <visuals prefab_tag="plant_tomato" wind_response_tag="soft">
+      <stage_visual stage_id="seed" mesh_tag="tomato_seed_mesh"/>
+      <stage_visual stage_id="seedling" mesh_tag="tomato_seedling_mesh"/>
+      <stage_visual stage_id="vegetative" mesh_tag="tomato_veg_mesh"/>
+      <stage_visual stage_id="flowering" mesh_tag="tomato_flower_mesh"/>
+      <stage_visual stage_id="fruiting" mesh_tag="tomato_fruit_mesh"/>
+    </visuals>
+  </plant>
+  <plant plant_id="oak_sapling" display_name="Oak (sapling)" lifeform="tree">
+    <species_tags><tag>native</tag><tag>canopy</tag></species_tags>
+    <stages>
+      <stage stage_id="seed" stage_name="Acorn" duration_degree_days="0" size_class="0" shade_cast="0" root_depth_class="0" visual_variant_tag="oak_acorn"/>
+      <stage stage_id="sapling" stage_name="Sapling" duration_degree_days="2000" size_class="2" shade_cast="30" root_depth_class="3" visual_variant_tag="oak_sapling"/>
+      <stage stage_id="young" stage_name="Young tree" duration_degree_days="5000" size_class="4" shade_cast="80" root_depth_class="5" visual_variant_tag="oak_young"/>
+      <stage stage_id="mature" stage_name="Mature oak" duration_degree_days="99999" size_class="6" shade_cast="200" root_depth_class="6" visual_variant_tag="oak_mature"/>
+    </stages>
+    <requirements temp_min="-15" temp_opt="18" temp_max="28" moisture_min="30" moisture_opt="60" moisture_max="90"
+                 light_min="50" light_opt="200" fertility_min="0" establishment_disturbance_max="15">
+      <allowed_surfaces>
+        <surface_id>bare_soil</surface_id>
+        <surface_id>mulch</surface_id>
+      </allowed_surfaces>
+    </requirements>
+    <reproduction seed_production_rate="5" seed_bank_longevity_days="365" dispersal_radius_cells="3" dispersal_mode="animal"/>
+    <yields>
+      <yield yield_id="oak_acorn" item_id="item_acorn" stage_required="mature" min_qty="1" max_qty="8" chance="0.9"/>
+    </yields>
+    <interactions>
+      <interaction action_type="harvest" effects_id="harvest_acorn"/>
+      <interaction action_type="prune" effects_id="prune_tree"/>
+      <interaction action_type="uproot" effects_id="uproot_plant"/>
+    </interactions>
+    <visuals prefab_tag="plant_oak" wind_response_tag="tree"/>
+  </plant>
+</plants>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:simpleType name="ToolActionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="dig"/>
+      <xs:enumeration value="rake"/>
+      <xs:enumeration value="plant"/>
+      <xs:enumeration value="harvest"/>
+      <xs:enumeration value="water"/>
+      <xs:enumeration value="prune"/>
+      <xs:enumeration value="chop"/>
+      <xs:enumeration value="uproot"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ToolTargetType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="cell"/>
+      <xs:enumeration value="entity"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="tools">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="tool" type="ToolDef" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="ToolDef">
+    <xs:sequence>
+      <xs:element name="action" type="ToolActionDef" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="tool_id" type="xs:ID" use="required"/>
+    <xs:attribute name="display_name" type="xs:string" use="required"/>
+    <xs:attribute name="item_id" type="xs:string" use="optional"/>
+    <xs:attribute name="durability_max" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="stamina_cost" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="range_meters" type="xs:decimal" use="optional"/>
+    <xs:attribute name="area_pattern_id" type="xs:string" use="optional"/>
+    <xs:attribute name="anim_tag" type="xs:string" use="optional"/>
+    <xs:attribute name="fx_tag" type="xs:string" use="optional"/>
+    <xs:attribute name="sound_tag" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="ToolActionDef">
+    <xs:sequence>
+      <xs:element name="effects" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="effect_ref" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:attribute name="effect_id" type="xs:string" use="required"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="tool_action_id" type="xs:ID" use="required"/>
+    <xs:attribute name="action_type" type="ToolActionType" use="required"/>
+    <xs:attribute name="target_type" type="ToolTargetType" use="required"/>
+    <xs:attribute name="requirements_id" type="xs:string" use="optional"/>
+    <xs:attribute name="cooldown" type="xs:decimal" use="optional"/>
+  </xs:complexType>
+</xs:schema>

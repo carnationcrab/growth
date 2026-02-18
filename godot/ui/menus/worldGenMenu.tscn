@@ -1,0 +1,150 @@
+[gd_scene load_steps=2 format=3 uid="uid://bfxgmtrsrwwow"]
+
+[ext_resource type="Script" path="res://godot/ui/menus/WorldGenMenu.gd" id="1_script"]
+
+[node name="WorldGenMenu" type="Control"]
+script = ExtResource("1_script")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="CenterContainer" type="CenterContainer" parent="MarginContainer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="MarginContainer/CenterContainer"]
+custom_minimum_size = Vector2(700, 0)
+layout_mode = 2
+
+[node name="CardPadding" type="MarginContainer" parent="MarginContainer/CenterContainer/Card"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="CardVBox" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
+layout_mode = 2
+text = "World Generation"
+horizontal_alignment = 1
+
+[node name="SeedRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
+layout_mode = 2
+
+[node name="SeedLabel" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/SeedRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "Seed"
+
+[node name="SeedEdit" type="LineEdit" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/SeedRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RandomSeedBtn" type="Button" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/SeedRow"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+text = "Random"
+
+[node name="SizeRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
+layout_mode = 2
+
+[node name="SizeLabel" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/SizeRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+text = "World Size"
+
+[node name="SizeOpt" type="OptionButton" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/SizeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TempBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
+layout_mode = 2
+
+[node name="TempTopRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/TempBlock"]
+layout_mode = 2
+
+[node name="TempLabel" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/TempBlock/TempTopRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Temperature"
+
+[node name="TempValue" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/TempBlock/TempTopRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "50%"
+horizontal_alignment = 2
+
+[node name="TempSlider" type="HSlider" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/TempBlock"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 200.0
+value = 50.0
+step = 1.0
+
+[node name="PrecipBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
+layout_mode = 2
+
+[node name="PrecipTopRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PrecipBlock"]
+layout_mode = 2
+
+[node name="PrecipLabel" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PrecipBlock/PrecipTopRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Precipitation"
+
+[node name="PrecipValue" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PrecipBlock/PrecipTopRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "50%"
+horizontal_alignment = 2
+
+[node name="PrecipSlider" type="HSlider" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PrecipBlock"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 200.0
+value = 50.0
+step = 1.0
+
+[node name="BottomRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
+layout_mode = 2
+
+[node name="BackBtn" type="Button" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/BottomRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Back"
+
+[node name="Spacer" type="Control" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/BottomRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GenerateBtn" type="Button" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/BottomRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Generate"

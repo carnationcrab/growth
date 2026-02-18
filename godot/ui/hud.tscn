@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://5vibv5ucbxbx"]
+
+[ext_resource type="Script" uid="uid://cfyi1guo77j3k" path="res://godot/ui/HUD.cs" id="1_x3s4b"]
+
+[node name="Hud" type="Control" unique_id=2123691331]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_x3s4b")

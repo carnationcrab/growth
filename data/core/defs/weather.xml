@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<weather xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../schemas/weather.xsd">
+  <weather_def weather_id="clear" display_name="Clear" precip_rate="0" cloudiness="0"
+               temp_delta="0" wind_delta="0" visibility_delta="0" duration_min="60" duration_max="480">
+    <tags/>
+  </weather_def>
+  <weather_def weather_id="drizzle" display_name="Drizzle" precip_rate="20" cloudiness="180"
+               temp_delta="-2" wind_delta="5" visibility_delta="-10" duration_min="120" duration_max="300">
+    <tags><tag>drizzle</tag></tags>
+  </weather_def>
+  <weather_def weather_id="rain" display_name="Rain" precip_rate="80" cloudiness="220"
+               temp_delta="-3" wind_delta="15" visibility_delta="-30" duration_min="60" duration_max="180">
+    <tags><tag>storm</tag></tags>
+  </weather_def>
+  <weather_def weather_id="storm" display_name="Storm" precip_rate="150" cloudiness="255"
+               temp_delta="-5" wind_delta="40" visibility_delta="-60" duration_min="30" duration_max="90">
+    <tags><tag>storm</tag></tags>
+  </weather_def>
+  <weather_def weather_id="heatwave" display_name="Heatwave" precip_rate="0" cloudiness="20"
+               temp_delta="8" wind_delta="-5" visibility_delta="0" duration_min="120" duration_max="240">
+    <tags><tag>heatwave</tag></tags>
+  </weather_def>
+  <weather_def weather_id="overcast" display_name="Overcast" precip_rate="0" cloudiness="200"
+               temp_delta="-1" wind_delta="5" visibility_delta="-5" duration_min="180" duration_max="600">
+    <tags/>
+  </weather_def>
+  <weather_distribution weather_distribution_id="weather_mild">
+    <entry weather_id="clear" weight="40"/>
+    <entry weather_id="overcast" weight="35"/>
+    <entry weather_id="drizzle" weight="20"/>
+    <entry weather_id="rain" weight="5"/>
+  </weather_distribution>
+  <weather_distribution weather_distribution_id="weather_warm">
+    <entry weather_id="clear" weight="50"/>
+    <entry weather_id="overcast" weight="25"/>
+    <entry weather_id="heatwave" weight="5"/>
+    <entry weather_id="rain" weight="20"/>
+  </weather_distribution>
+  <weather_distribution weather_distribution_id="weather_cold">
+    <entry weather_id="overcast" weight="45"/>
+    <entry weather_id="clear" weight="30"/>
+    <entry weather_id="drizzle" weight="25"/>
+  </weather_distribution>
+  <weather_distribution weather_distribution_id="weather_arid_dry">
+    <entry weather_id="clear" weight="90"/>
+    <entry weather_id="heatwave" weight="10"/>
+  </weather_distribution>
+  <weather_distribution weather_distribution_id="weather_arid_wet">
+    <entry weather_id="clear" weight="50"/>
+    <entry weather_id="overcast" weight="30"/>
+    <entry weather_id="rain" weight="15"/>
+    <entry weather_id="storm" weight="5"/>
+  </weather_distribution>
+</weather>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ClimateProfile, SeasonTable, SeasonDef. Reusable across biomes/regions. -->
+<climate xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../schemas/seasons.xsd">
+  <climate_profiles>
+    <climate_profile climate_profile_id="climate_temperate">
+      <temp_curve_id>curve_temperate_temp</temp_curve_id>
+      <rain_curve_id>curve_temperate_rain</rain_curve_id>
+      <wind_curve_id>curve_temperate_wind</wind_curve_id>
+      <humidity_curve_id>curve_temperate_humidity</humidity_curve_id>
+      <season_table_id>seasons_temperate</season_table_id>
+    </climate_profile>
+    <climate_profile climate_profile_id="climate_arid">
+      <temp_curve_id>curve_arid_temp</temp_curve_id>
+      <rain_curve_id>curve_arid_rain</rain_curve_id>
+      <wind_curve_id>curve_arid_wind</wind_curve_id>
+      <humidity_curve_id>curve_arid_humidity</humidity_curve_id>
+      <season_table_id>seasons_arid</season_table_id>
+    </climate_profile>
+  </climate_profiles>
+  <season_tables>
+    <season_table season_table_id="seasons_temperate">
+      <season_ref season_id="spring" start_day_of_year="80"/>
+      <season_ref season_id="summer" start_day_of_year="172"/>
+      <season_ref season_id="autumn" start_day_of_year="266"/>
+      <season_ref season_id="winter" start_day_of_year="356"/>
+    </season_table>
+    <season_table season_table_id="seasons_arid">
+      <season_ref season_id="dry" start_day_of_year="1"/>
+      <season_ref season_id="wet" start_day_of_year="182"/>
+    </season_table>
+  </season_tables>
+  <seasons>
+    <season season_id="spring" display_name="Spring" day_length_hours="12.5" weather_distribution_id="weather_mild"/>
+    <season season_id="summer" display_name="Summer" day_length_hours="15" weather_distribution_id="weather_warm"/>
+    <season season_id="autumn" display_name="Autumn" day_length_hours="11" weather_distribution_id="weather_mild"/>
+    <season season_id="winter" display_name="Winter" day_length_hours="8" weather_distribution_id="weather_cold"/>
+    <season season_id="dry" display_name="Dry season" day_length_hours="12" weather_distribution_id="weather_arid_dry"/>
+    <season season_id="wet" display_name="Wet season" day_length_hours="12" weather_distribution_id="weather_arid_wet"/>
+  </seasons>
+</climate>

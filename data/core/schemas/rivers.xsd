@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="rivers">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="river" type="RiverDef" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="RiverDef">
+    <xs:sequence>
+      <xs:element name="segment" type="RiverSegmentDef" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="river_id" type="xs:ID" use="required"/>
+    <xs:attribute name="display_name" type="xs:string" use="required"/>
+    <xs:attribute name="width_min_cells" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="width_max_cells" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="flow_rate" type="xs:decimal" use="optional"/>
+    <xs:attribute name="surface_id" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="RiverSegmentDef">
+    <xs:attribute name="width_cells" type="xs:nonNegativeInteger" use="optional"/>
+    <xs:attribute name="curve_id" type="xs:string" use="optional"/>
+  </xs:complexType>
+</xs:schema>

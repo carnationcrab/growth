@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<surfaces xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:noNamespaceSchemaLocation="../schemas/surfaces.xsd">
+  <surface surface_id="bare_soil" display_name="Bare soil" passable="true" buildable="true"
+           base_move_cost="1" water_infiltration="200" water_retention="120"
+           fertility_modifier="0" disturbance_modifier="0" visual_material_tag="mat_soil">
+    <tags><tag>soil</tag></tags>
+  </surface>
+  <surface surface_id="tilled" display_name="Tilled soil" passable="true" buildable="true"
+           base_move_cost="1" water_infiltration="220" water_retention="140"
+           fertility_modifier="5" disturbance_modifier="10" visual_material_tag="mat_tilled">
+    <tags><tag>soil</tag><tag>tilled</tag></tags>
+  </surface>
+  <surface surface_id="mulch" display_name="Mulch" passable="true" buildable="false"
+           base_move_cost="1" water_infiltration="180" water_retention="160"
+           fertility_modifier="10" disturbance_modifier="-5" visual_material_tag="mat_mulch">
+    <tags><tag>mulch</tag></tags>
+  </surface>
+  <surface surface_id="rock" display_name="Rock" passable="false" buildable="false"
+           base_move_cost="255" water_infiltration="0" water_retention="0"
+           fertility_modifier="0" disturbance_modifier="0" visual_material_tag="mat_rock">
+    <tags><tag>rock</tag></tags>
+  </surface>
+  <surface surface_id="sand" display_name="Sand" passable="true" buildable="true"
+           base_move_cost="2" water_infiltration="255" water_retention="20"
+           fertility_modifier="-10" disturbance_modifier="0" visual_material_tag="mat_sand">
+    <tags><tag>sand</tag></tags>
+  </surface>
+</surfaces>

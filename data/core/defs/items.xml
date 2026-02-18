@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ItemDef: display_name, stack_limit, mass, category_tags, decay_profile_id, icon/prefab. -->
+<items xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../schemas/items.xsd">
+  <item item_id="item_tomato" display_name="Tomato" stack_limit="20" mass="80"
+        decay_profile_id="decay_fresh_produce" icon_tag="icon_tomato" prefab_tag="item_tomato">
+    <category_tags><tag>food</tag></category_tags>
+  </item>
+  <item item_id="item_tomato_seeds" display_name="Tomato seeds" stack_limit="50" mass="1"
+        icon_tag="icon_seeds" prefab_tag="item_seeds">
+    <category_tags><tag>seed</tag></category_tags>
+  </item>
+  <item item_id="item_acorn" display_name="Acorn" stack_limit="30" mass="5"
+        icon_tag="icon_acorn" prefab_tag="item_acorn">
+    <category_tags><tag>seed</tag></category_tags>
+  </item>
+  <item item_id="item_hoe" display_name="Hoe" stack_limit="1" mass="1200" icon_tag="icon_hoe" prefab_tag="item_hoe">
+    <category_tags><tag>tool</tag></category_tags>
+  </item>
+  <item item_id="item_rake" display_name="Rake" stack_limit="1" mass="800" icon_tag="icon_rake" prefab_tag="item_rake">
+    <category_tags><tag>tool</tag></category_tags>
+  </item>
+  <item item_id="item_watering_can" display_name="Watering can" stack_limit="1" mass="600" icon_tag="icon_watering_can" prefab_tag="item_watering_can">
+    <category_tags><tag>tool</tag></category_tags>
+  </item>
+  <item item_id="item_scythe" display_name="Scythe" stack_limit="1" mass="1000" icon_tag="icon_scythe" prefab_tag="item_scythe">
+    <category_tags><tag>tool</tag></category_tags>
+  </item>
+  <item item_id="item_shovel" display_name="Shovel" stack_limit="1" mass="1500" icon_tag="icon_shovel" prefab_tag="item_shovel">
+    <category_tags><tag>tool</tag></category_tags>
+  </item>
+  <item item_id="item_wood" display_name="Wood" stack_limit="20" mass="500" icon_tag="icon_wood" prefab_tag="item_wood">
+    <category_tags><tag>material</tag></category_tags>
+  </item>
+  <item item_id="item_nails" display_name="Nails" stack_limit="100" mass="10" icon_tag="icon_nails" prefab_tag="item_nails">
+    <category_tags><tag>material</tag></category_tags>
+  </item>
+  <item item_id="item_metal_hoops" display_name="Metal hoops" stack_limit="10" mass="200" icon_tag="icon_hoops" prefab_tag="item_hoops">
+    <category_tags><tag>material</tag></category_tags>
+  </item>
+  <item item_id="item_roof_tiles" display_name="Roof tiles" stack_limit="16" mass="800" icon_tag="icon_tiles" prefab_tag="item_tiles">
+    <category_tags><tag>material</tag></category_tags>
+  </item>
+  <item item_id="item_compost_bin" display_name="Compost bin" stack_limit="1" mass="0" icon_tag="icon_compost_bin" prefab_tag="building_compost_bin">
+    <category_tags><tag>building</tag></category_tags>
+  </item>
+  <item item_id="item_rain_barrel" display_name="Rain barrel" stack_limit="1" mass="0" icon_tag="icon_rain_barrel" prefab_tag="building_rain_barrel">
+    <category_tags><tag>building</tag></category_tags>
+  </item>
+  <item item_id="item_shed" display_name="Shed" stack_limit="1" mass="0" icon_tag="icon_shed" prefab_tag="building_shed">
+    <category_tags><tag>building</tag></category_tags>
+  </item>
+  <item item_id="item_mulch" display_name="Mulch" stack_limit="10" mass="200" icon_tag="icon_mulch" prefab_tag="item_mulch">
+    <category_tags><tag>mulch</tag></category_tags>
+  </item>
+</items>

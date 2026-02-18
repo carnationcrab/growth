@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- RecipeDef: inputs, outputs, time, required station/skill tags. -->
+<recipes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="../schemas/recipes.xsd">
+  <recipe recipe_id="recipe_compost_bin" time_to_complete="60">
+    <inputs>
+      <input item_id="item_wood" qty="8"/>
+      <input item_id="item_nails" qty="4"/>
+    </inputs>
+    <outputs>
+      <output item_id="item_compost_bin" qty="1"/>
+    </outputs>
+    <required_station_tags>
+      <tag>workbench</tag>
+    </required_station_tags>
+  </recipe>
+  <recipe recipe_id="recipe_rain_barrel" time_to_complete="45">
+    <inputs>
+      <input item_id="item_wood" qty="4"/>
+      <input item_id="item_metal_hoops" qty="2"/>
+    </inputs>
+    <outputs>
+      <output item_id="item_rain_barrel" qty="1"/>
+    </outputs>
+    <required_station_tags>
+      <tag>workbench</tag>
+    </required_station_tags>
+  </recipe>
+  <recipe recipe_id="recipe_shed" time_to_complete="300">
+    <inputs>
+      <input item_id="item_wood" qty="24"/>
+      <input item_id="item_nails" qty="16"/>
+      <input item_id="item_roof_tiles" qty="9"/>
+    </inputs>
+    <outputs>
+      <output item_id="item_shed" qty="1"/>
+    </outputs>
+    <required_station_tags>
+      <tag>workbench</tag>
+    </required_station_tags>
+    <skill_tags>
+      <tag>carpentry</tag>
+    </skill_tags>
+  </recipe>
+</recipes>

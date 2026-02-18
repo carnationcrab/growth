@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<points_of_interest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:noNamespaceSchemaLocation="../schemas/points_of_interest.xsd">
+  <poi poi_id="starting_clearing" display_name="Starting clearing" poi_type="spawn" radius_cells="8" weight="1">
+    <placement condition_set_id="flat_enough" min_elevation="0" max_elevation="100" biome_ids="temperate_forest,arid_shrubland"/>
+  </poi>
+  <poi poi_id="ruined_shed" display_name="Ruined shed" poi_type="structure" radius_cells="3"
+       building_id="shed" prefab_tag="stamp_ruined_shed" weight="10">
+    <placement min_elevation="0" max_elevation="80" biome_ids="temperate_forest"/>
+  </poi>
+  <poi poi_id="old_well" display_name="Old well" poi_type="structure" radius_cells="2"
+       prefab_tag="stamp_well" weight="15">
+    <placement min_elevation="0" max_elevation="120" biome_ids="temperate_forest,arid_shrubland"/>
+  </poi>
+  <poi poi_id="shrine" display_name="Garden shrine" poi_type="decoration" radius_cells="2"
+       prefab_tag="stamp_shrine" weight="5">
+    <placement biome_ids="temperate_forest"/>
+  </poi>
+</points_of_interest>

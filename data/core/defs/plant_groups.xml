@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PlantGroupDef: native plant communities and succession sets. -->
+<plant_groups xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../schemas/plant_groups.xsd">
+  <plant_group plant_group_id="forest_understory" display_name="Forest understory">
+    <plants>
+      <plant_ref plant_id="oak_sapling" weight="20" role="pioneer"/>
+      <plant_ref plant_id="tomato" weight="5" role="understory"/>
+    </plants>
+  </plant_group>
+  <plant_group plant_group_id="forest_canopy" display_name="Forest canopy">
+    <plants>
+      <plant_ref plant_id="oak_sapling" weight="80" role="canopy"/>
+    </plants>
+  </plant_group>
+  <plant_group plant_group_id="shrubland_pioneer" display_name="Shrubland pioneer">
+    <plants>
+      <plant_ref plant_id="tomato" weight="30" role="pioneer"/>
+      <plant_ref plant_id="oak_sapling" weight="10" role="mid"/>
+    </plants>
+  </plant_group>
+</plant_groups>

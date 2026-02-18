@@ -1,0 +1,22 @@
+# Build growth GDExtension (growth_sim). Requires godot-cpp in ./godot-cpp (4.x).
+# Run from gde/: scons platform=windows (or linux/macos)
+
+import os
+
+env = SConscript("godot-cpp/SConstruct") if os.path.exists("godot-cpp/SConstruct") else None
+if env is None:
+    print("godot-cpp not found. Clone: git clone -b 4.x https://github.com/godotengine/godot-cpp godot-cpp")
+    Exit(1)
+
+env.Append(CPPPATH=[
+    "#sim_core/include",
+])
+sources = [
+    "src/register_types.cpp",
+    "src/sim_api_gdextension.cpp",
+    "sim_core/src/bridge/DiffQueue.cpp",
+    "sim_core/src/bridge/SimBridge.cpp",
+    "sim_core/src/world/ChunkStore.cpp",
+]
+lib = env.SharedLibrary("bin/growth_sim", sources)
+Default(lib)

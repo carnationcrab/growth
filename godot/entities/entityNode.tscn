@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cifewoeiqrfsg"]
+
+[ext_resource type="Script" uid="uid://d0onefvf44jjt" path="res://godot/entities/EntityNode.cs" id="1_dm41c"]
+
+[node name="EntityNode" type="Node3D" unique_id=2046473734]
+script = ExtResource("1_dm41c")

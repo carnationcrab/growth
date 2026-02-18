@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <!-- Pack manifest (e.g. core): lists defs, schemas, stamps. -->
+  <xs:element name="pack_manifest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="version" type="xs:positiveInteger"/>
+        <xs:element name="defs" type="FileListDef" minOccurs="0"/>
+        <xs:element name="schemas" type="FileListDef" minOccurs="0"/>
+        <xs:element name="stamps" type="FileListDef" minOccurs="0"/>
+      </xs:sequence>
+      <xs:attribute name="pack_id" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="FileListDef">
+    <xs:sequence>
+      <xs:element name="file" type="xs:string" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

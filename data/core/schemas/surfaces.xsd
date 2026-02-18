@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="surfaces">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="surface" type="SurfaceDef" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="SurfaceDef">
+    <xs:sequence>
+      <xs:element name="tags" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="tag" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="surface_id" type="xs:ID" use="required"/>
+    <xs:attribute name="display_name" type="xs:string" use="required"/>
+    <xs:attribute name="passable" type="xs:boolean" use="required"/>
+    <xs:attribute name="buildable" type="xs:boolean" use="required"/>
+    <xs:attribute name="base_move_cost" type="xs:unsignedByte" use="required"/>
+    <xs:attribute name="water_infiltration" type="xs:unsignedByte" use="required"/>
+    <xs:attribute name="water_retention" type="xs:unsignedByte" use="required"/>
+    <xs:attribute name="fertility_modifier" type="xs:short" use="required"/>
+    <xs:attribute name="disturbance_modifier" type="xs:short" use="required"/>
+    <xs:attribute name="visual_material_tag" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:schema>

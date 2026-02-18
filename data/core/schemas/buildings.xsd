@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="buildings">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="building" type="BuildingDef" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="BuildingDef">
+    <xs:sequence>
+      <xs:element name="ongoing_effects" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="effect_ref" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:attribute name="effect_id" type="xs:string" use="required"/>
+                <xs:attribute name="magnitude" type="xs:decimal" use="optional"/>
+                <xs:attribute name="duration" type="xs:decimal" use="optional"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="building_id" type="xs:ID" use="required"/>
+    <xs:attribute name="display_name" type="xs:string" use="required"/>
+    <xs:attribute name="footprint_pattern_id" type="xs:string" use="required"/>
+    <xs:attribute name="placement_rules_id" type="xs:string" use="optional"/>
+    <xs:attribute name="construction_recipe_id" type="xs:string" use="required"/>
+    <xs:attribute name="deterioration_profile_id" type="xs:string" use="optional"/>
+    <xs:attribute name="visual_prefab_tag" type="xs:string" use="optional"/>
+  </xs:complexType>
+</xs:schema>

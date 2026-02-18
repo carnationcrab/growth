@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="biomes">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="biome" type="BiomeDef" maxOccurs="unbounded"/>
+        <xs:element name="biome_plant_spawn_rule" type="BiomePlantSpawnRuleDef" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="BiomeDef">
+    <xs:sequence>
+      <xs:element name="surface_palette" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="surface_id" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="spawn_groups" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="plant_group_ref" maxOccurs="unbounded">
+              <xs:complexType>
+                <xs:attribute name="plant_group_id" type="xs:string" use="required"/>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="biome_id" type="xs:ID" use="required"/>
+    <xs:attribute name="display_name" type="xs:string" use="required"/>
+    <xs:attribute name="climate_profile_id" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="BiomePlantSpawnRuleDef">
+    <xs:attribute name="biome_id" type="xs:string" use="required"/>
+    <xs:attribute name="plant_group_id" type="xs:string" use="required"/>
+    <xs:attribute name="weight" type="xs:nonNegativeInteger" use="required"/>
+    <xs:attribute name="condition_set_id" type="xs:string" use="optional"/>
+    <xs:attribute name="elevation_band_min" type="xs:decimal" use="optional"/>
+    <xs:attribute name="elevation_band_max" type="xs:decimal" use="optional"/>
+  </xs:complexType>
+</xs:schema>
