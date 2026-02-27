@@ -1,13 +1,25 @@
 #include "sim_api_gdextension.h"
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
-#include <godot_cpp/classes/file_access.hpp>
-#include <godot_cpp/classes/xml_parser.hpp>
 #include "bridge/SimBridge.hpp"
 #include "bridge/Diff.hpp"
 #include "world/WorldCoord.hpp"
+#include "gen/WorldSeed.hpp"
+#include "gen/Planet.hpp"
+#include "world/PlanetGlobeGenerator.hpp"
+#include "world/VoronoiSphere.hpp"
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/packed_int32_array.hpp>
+#include <godot_cpp/variant/packed_vector3_array.hpp>
+#include "api/WorldGenRunner.hpp"
+#include "WorldGenFormParser.hpp"
+#include "UiAssetLoader.hpp"
+#include "DiffConverter.hpp"
+#include "IntentHandler.hpp"
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 namespace godot {
 
@@ -17,6 +29,8 @@ struct GrowthSim::BridgeHolder {
 
 void GrowthSim::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("boot", "defdb_path"), &GrowthSim::boot);
+	ClassDB::bind_method(D_METHOD("apply_world_gen_form", "form_dict"), &GrowthSim::apply_world_gen_form);
+	ClassDB::bind_method(D_METHOD("get_last_world_gen_triangles"), &GrowthSim::get_last_world_gen_triangles);
 	ClassDB::bind_method(D_METHOD("step", "dt", "speed"), &GrowthSim::step);
 	ClassDB::bind_method(D_METHOD("set_speed", "mode"), &GrowthSim::set_speed);
 	ClassDB::bind_method(D_METHOD("request_chunks", "center_chunk", "radius"), &GrowthSim::request_chunks);
@@ -29,27 +43,65 @@ void GrowthSim::boot(const String &defdb_path) {
 	if (bridge_) return;
 	bridge_ = new BridgeHolder();
 	std::string path(defdb_path.utf8().get_data());
-	bridge_->bridge.boot(0, path);
+	bridge_->bridge.boot(growth::WorldSeed{}, path);
+	_ui_asset_paths = growth_sim::load_ui_assets(defdb_path);
+}
 
-	_ui_asset_paths.clear();
-	String base = defdb_path.ends_with("/") ? defdb_path : defdb_path + "/";
-	String asset_file = base + "defs/ui_assets.xml";
-	Ref<FileAccess> f = FileAccess::open(asset_file, FileAccess::READ);
-	if (f.is_valid()) {
-		PackedByteArray buf = f->get_buffer((int64_t)f->get_length());
-		Ref<XMLParser> parser;
-		parser.instantiate();
-		if (parser->open_buffer(buf) == OK) {
-			while (parser->read() == OK) {
-				if (parser->get_node_type() == XMLParser::NODE_ELEMENT && parser->get_node_name() == "asset") {
-					String id = parser->get_named_attribute_value_safe("asset_id");
-					String path_val = parser->get_named_attribute_value_safe("path");
-					if (id.length() > 0 && path_val.length() > 0)
-						_ui_asset_paths[id.utf8().get_data()] = path_val.utf8().get_data();
-				}
-			}
-		}
+// World-gen form submit pipeline: parse form -> WorldGenRunner -> set_world_gen -> globe gen -> return Voronoi sites + Delaunay triangles.
+Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
+	Dictionary out;
+	if (!bridge_) return out;
+	growth::ParsedWorldGenForm parsed;
+	growth_sim::parse_world_gen_form(form_dict, parsed);
+	growth::WorldSeed world_seed;
+	growth::PlanetGenome planet_genome;
+	growth::WorldGenRunner runner;
+	runner.run(parsed, world_seed, planet_genome);
+
+	UtilityFunctions::print("[PlanetGen] generating preset=", String(parsed.planet_preset.c_str()), " seed=", (int64_t)world_seed.value,
+		" temperature=", parsed.temperature, "% precipitation=", parsed.precipitation, "%");
+	bridge_->bridge.set_world_gen(world_seed, planet_genome);
+
+	growth::Planet p(planet_genome);
+	UtilityFunctions::print("[Planet] seed=", (int64_t)planet_genome.seed, " S_eff=", planet_genome.S_eff, " g=", p.g(), " P_orb_days=", p.P_orb() / 86400.0,
+		" T_surf_K=", p.T_surf_estimate(), " precip=", planet_genome.precipitation, " water=", planet_genome.water_fraction,
+		" scale_height_m=", p.scale_height());
+
+	UtilityFunctions::print("[PlanetGlobe] began processing (sites=", (int64_t)parsed.voronoi_sites, ")");
+	growth::VoronoiSphere voronoi_sphere;
+	growth::PlanetGlobeGenerator globe_gen;
+	globe_gen.run(world_seed, planet_genome, voronoi_sphere, parsed.voronoi_sites);
+
+	// Sites in sim coords (Z-up); SpherePreview converts to Godot Y-up for display.
+	const auto &sites = voronoi_sphere.sites;
+	PackedVector3Array sites_arr;
+	sites_arr.resize(static_cast<int64_t>(sites.size()));
+	for (size_t i = 0; i < sites.size(); ++i)
+		sites_arr.set(static_cast<int64_t>(i), Vector3(sites[i].x, sites[i].y, sites[i].z));
+	out["sites"] = sites_arr;
+
+	const size_t num_tri = voronoi_sphere.triangles.size();
+	const int64_t flat_size = static_cast<int64_t>(num_tri * 3);
+	// Store in PackedInt32Array for get_last_world_gen_triangles() direct return (marshals to C# as int[])
+	_last_world_gen_triangles.resize(flat_size);
+	for (size_t i = 0; i < num_tri; ++i) {
+		const auto &t = voronoi_sphere.triangles[i];
+		_last_world_gen_triangles.set(static_cast<int64_t>(i * 3 + 0), static_cast<int32_t>(t[0]));
+		_last_world_gen_triangles.set(static_cast<int64_t>(i * 3 + 1), static_cast<int32_t>(t[1]));
+		_last_world_gen_triangles.set(static_cast<int64_t>(i * 3 + 2), static_cast<int32_t>(t[2]));
 	}
+	UtilityFunctions::print("[WorldGen] C++ triangles: ", (int64_t)num_tri, " (flat size ", flat_size, ")");
+	// Also put Array in dict for GDScript consumers that read from result
+	Array tri_arr;
+	tri_arr.resize(flat_size);
+	for (int64_t i = 0; i < flat_size; ++i)
+		tri_arr[i] = _last_world_gen_triangles[i];
+	out["triangles"] = tri_arr;
+	return out;
+}
+
+PackedInt32Array GrowthSim::get_last_world_gen_triangles() const {
+	return _last_world_gen_triangles;
 }
 
 GrowthSim::GrowthSim() {}
@@ -64,7 +116,7 @@ void GrowthSim::step(double dt, double /* speed */) {
 }
 
 void GrowthSim::set_speed(int /* mode */) {
-	if (bridge_) { /* optional: bridge_->bridge.set_speed(mode); */ }
+	if (bridge_) { /* optional */ }
 }
 
 void GrowthSim::request_chunks(Vector2i center_chunk, int radius) {
@@ -79,45 +131,14 @@ Array GrowthSim::poll_diffs(int max_count) {
 	growth::Diff d;
 	int n = 0;
 	while (n < max_count && bridge_->bridge.poll_diff(d)) {
-		Dictionary dict;
-		if (d.type == growth::DiffType::ChunkLoaded) {
-			dict["type"] = String("ChunkLoaded");
-			dict["coord"] = Vector2i(d.chunk_loaded.coord.x, d.chunk_loaded.coord.z);
-			PackedFloat32Array arr;
-			arr.resize((int)d.chunk_loaded.height_samples.size());
-			for (size_t i = 0; i < d.chunk_loaded.height_samples.size(); ++i)
-				arr[(int)i] = d.chunk_loaded.height_samples[i];
-			dict["height_samples"] = arr;
-		} else if (d.type == growth::DiffType::ChunkUnloaded) {
-			dict["type"] = String("ChunkUnloaded");
-			dict["coord"] = Vector2i(d.chunk_unloaded.coord.x, d.chunk_unloaded.coord.z);
-		} else if (d.type == growth::DiffType::CellChanged) {
-			dict["type"] = String("CellChanged");
-			dict["chunk_coord"] = Vector2i(d.cell_changed.chunk_coord.x, d.cell_changed.chunk_coord.z);
-			dict["local_xz"] = Vector2i(d.cell_changed.local_x, d.cell_changed.local_z);
-			dict["layer"] = d.cell_changed.layer;
-			dict["new_value"] = d.cell_changed.new_value;
-		}
-		out.push_back(dict);
+		out.push_back(growth_sim::diff_to_dictionary(d));
 		++n;
 	}
 	return out;
 }
 
 void GrowthSim::apply_intent(const Dictionary &intent_dict) {
-	if (!bridge_) return;
-	Variant type_var = intent_dict.get("type", Variant());
-	String type_str = type_var.is_string() ? type_var : String();
-	if (type_str == "dig") {
-		Variant coord_var = intent_dict.get("chunk_coord", Variant());
-		Variant local_var = intent_dict.get("local_xz", Variant());
-		Vector2i coord = coord_var.get_type() == Variant::VECTOR2I ? coord_var : Vector2i();
-		Vector2i local = local_var.get_type() == Variant::VECTOR2I ? local_var : Vector2i();
-		bridge_->bridge.apply_intent_dig(
-			growth::ChunkCoord{ coord.x, coord.y },
-			local.x, local.y
-		);
-	}
+	growth_sim::apply_intent(bridge_ ? &bridge_->bridge : nullptr, intent_dict);
 }
 
 String GrowthSim::get_ui_asset_path(const String &p_asset_id) {

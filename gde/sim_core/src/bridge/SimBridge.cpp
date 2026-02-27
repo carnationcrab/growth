@@ -3,11 +3,16 @@
 
 namespace growth {
 
-void SimBridge::boot(Seed seed, const std::string &defs_path) {
-	seed_ = seed;
+void SimBridge::boot(WorldSeed world_seed, const std::string &defs_path) {
+	world_seed_ = world_seed;
 	defs_path_ = defs_path;
 	diff_queue_.clear();
 	// DefDatabase load from defs_path can be added later
+}
+
+void SimBridge::set_world_gen(WorldSeed world_seed, const PlanetGenome &planet_genome) {
+	world_seed_ = world_seed;
+	planet_genome_ = planet_genome;
 }
 
 void SimBridge::step(double /* dt */) {

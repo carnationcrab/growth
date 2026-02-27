@@ -15,6 +15,7 @@ public partial class SimAPI : Node
 	private readonly List<Godot.Collections.Dictionary> _stubDiffQueue = new();
 	private readonly Dictionary<Vector2I, bool> _stubRequested = new();
 	private Dictionary<string, string> _uiAssetPaths = new();
+	private readonly Dictionary<string, Texture2D> _cachedUiTextures = new();
 
 	public override void _Ready()
 	{
@@ -42,7 +43,7 @@ public partial class SimAPI : Node
 			_uiAssetPaths[m.Groups[1].Value] = m.Groups[2].Value;
 	}
 
-	/// <summary>Load/initialise sim with path to def database (e.g. data/core).</summary>
+	/// <summary>Initialise the sim (path only). No generation; call ApplyWorldGenForm when the user submits the world gen form.</summary>
 	public void boot(string defdbPath)
 	{
 		if (_backend != null)
@@ -54,6 +55,44 @@ public partial class SimAPI : Node
 		_stubRequested.Clear();
 		GD.Print("[SimAPI] boot defdb_path=", defdbPath);
 	}
+
+	/// <summary>Run world gen from form; returns Dictionary with "sites" (direct ref) and "triangles" (copied to Array so GDScript receives it; PackedInt32Array does not survive C#→GDScript otherwise).</summary>
+	public Godot.Collections.Dictionary ApplyWorldGenForm(Godot.Collections.Dictionary formDict)
+	{
+		if (_backend != null)
+		{
+			var v = _backend.Call("apply_world_gen_form", formDict);
+			var dict = v.As<Godot.Collections.Dictionary>();
+			if (dict != null)
+			{
+				var result = new Godot.Collections.Dictionary();
+				result["sites"] = dict["sites"];
+				// Fetch triangles via direct method return (PackedInt32Array marshals as int[]); copy to Array for GDScript
+				var triRet = _backend.Call("get_last_world_gen_triangles");
+				var triInts = triRet.As<int[]>();
+				if (triInts != null && triInts.Length > 0)
+				{
+					var arr = new Godot.Collections.Array();
+					foreach (var x in triInts) arr.Add(x);
+					result["triangles"] = arr;
+				}
+				else
+				{
+					var triArr = triRet.As<Godot.Collections.Array>();
+					result["triangles"] = triArr != null ? triArr : new Godot.Collections.Array();
+				}
+				return result;
+			}
+		}
+		GD.Print("[SimAPI] apply_world_gen_form (stub) ", formDict);
+		var empty = new Godot.Collections.Dictionary();
+		empty["sites"] = System.Array.Empty<Vector3>();
+		empty["triangles"] = System.Array.Empty<int>();
+		return empty;
+	}
+
+	/// <summary>Snake_case alias for GDScript.</summary>
+	public Godot.Collections.Dictionary apply_world_gen_form(Godot.Collections.Dictionary formDict) => ApplyWorldGenForm(formDict);
 
 	/// <summary>Advance sim by dt seconds; speed is time scale multiplier.</summary>
 	public void step(double dt, double speed)
@@ -172,6 +211,25 @@ public partial class SimAPI : Node
 
 	/// <summary>Snake_case alias for GDScript (GetUiAssetPath).</summary>
 	public string get_ui_asset_path(string assetId) => ResolveUiAssetPath(assetId);
+
+	/// <summary>Load and cache a UI texture by asset id. Returns the same instance for repeated calls to avoid duplicate copies.</summary>
+	public Texture2D GetUiAssetTexture(string assetId) => ResolveUiAssetTexture(assetId);
+
+	/// <summary>Snake_case alias for GDScript.</summary>
+	public Texture2D get_ui_asset_texture(string assetId) => ResolveUiAssetTexture(assetId);
+
+	private Texture2D ResolveUiAssetTexture(string assetId)
+	{
+		if (_cachedUiTextures.TryGetValue(assetId, out var cached))
+			return cached;
+		string path = ResolveUiAssetPath(assetId);
+		if (string.IsNullOrEmpty(path))
+			return null;
+		var tex = GD.Load<Texture2D>(path);
+		if (tex != null)
+			_cachedUiTextures[assetId] = tex;
+		return tex;
+	}
 
 	private string ResolveUiAssetPath(string assetId)
 	{

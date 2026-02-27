@@ -1,0 +1,69 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8sphere_preview_overlay"]
+
+[ext_resource type="Script" path="res://godot/ui/panels/SpherePreviewOverlay.cs" id="1_script"]
+
+[node name="SpherePreviewOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 232.0
+offset_bottom = 140.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("1_script")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Card" type="PanelContainer" parent="MarginContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="CardPadding" type="MarginContainer" parent="MarginContainer/Card"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="LayersVBox" type="VBoxContainer" parent="MarginContainer/Card/CardPadding"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LayersLabel" type="Label" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+layout_mode = 2
+text = "Layers"
+
+[node name="SphereRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+layout_mode = 2
+
+[node name="SphereCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/SphereRow"]
+layout_mode = 2
+button_pressed = true
+text = "Sphere"
+
+[node name="PointsRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+layout_mode = 2
+
+[node name="PointsCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/PointsRow"]
+layout_mode = 2
+button_pressed = true
+text = "Fibonacci points"
+
+[node name="DelaunayRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+layout_mode = 2
+
+[node name="DelaunayCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/DelaunayRow"]
+layout_mode = 2
+button_pressed = true
+text = "Delaunay"

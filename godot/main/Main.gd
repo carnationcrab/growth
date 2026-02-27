@@ -4,7 +4,7 @@ extends Node3D
 
 @onready var world_root: Node3D = $WorldRoot
 @onready var focus: Node3D = $Focus
-@onready var camera: Camera3D = $Camera3D
+@onready var camera: Camera3D = $Focus/Camera3D
 
 var _world_view: Node = null  # WorldViewManager (script or node)
 
@@ -55,6 +55,9 @@ func _init_world_streaming() -> void:
 
 
 func _update_world_streaming() -> void:
+	# When sphere preview is shown, don't stream chunk terrain (no flat MeshInstance3Ds).
+	if get_node_or_null("SpherePreview") != null:
+		return
 	if _world_view == null or not _world_view.has_method("update_streaming"):
 		return
 	var focus_pos: Vector3 = focus.global_position

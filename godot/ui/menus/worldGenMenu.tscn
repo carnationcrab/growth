@@ -80,6 +80,32 @@ text = "World Size"
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="PointsBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
+layout_mode = 2
+
+[node name="PointsTopRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PointsBlock"]
+layout_mode = 2
+
+[node name="PointsLabel" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PointsBlock/PointsTopRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Points"
+
+[node name="PointsValue" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PointsBlock/PointsTopRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "256"
+horizontal_alignment = 2
+
+[node name="PointsSlider" type="HSlider" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PointsBlock"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 32.0
+max_value = 1024.0
+value = 256.0
+step = 1.0
+
 [node name="TempBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
 layout_mode = 2
 

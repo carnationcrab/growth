@@ -14,9 +14,24 @@ env.Append(CPPPATH=[
 sources = [
     "src/register_types.cpp",
     "src/sim_api_gdextension.cpp",
+    "src/WorldGenFormParser.cpp",
+    "src/UiAssetLoader.cpp",
+    "src/DiffConverter.cpp",
+    "src/IntentHandler.cpp",
+    "sim_core/src/api/WorldGenRunner.cpp",
     "sim_core/src/bridge/DiffQueue.cpp",
     "sim_core/src/bridge/SimBridge.cpp",
+    "sim_core/src/gen/PlanetBlueprint.cpp",
+    "sim_core/src/gen/PlanetGenerator.cpp",
+    "sim_core/src/gen/SeedGenerator.cpp",
+    "sim_core/src/util/Random.cpp",
+    "sim_core/src/world/Chunk.cpp",
     "sim_core/src/world/ChunkStore.cpp",
+    "sim_core/src/world/BowyerWatson.cpp",
+    "sim_core/src/world/Delaunay2D.cpp",
+    "sim_core/src/world/FibonacciSphere.cpp",
+    "sim_core/src/world/VoronoiSphereGenerator.cpp",
+    "sim_core/src/world/PlanetGlobeGenerator.cpp",
 ]
 lib = env.SharedLibrary("bin/growth_sim", sources)
 Default(lib)

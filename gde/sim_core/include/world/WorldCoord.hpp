@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace growth {
 
 struct ChunkCoord {

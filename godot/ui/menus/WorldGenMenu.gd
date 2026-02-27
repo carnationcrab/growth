@@ -40,6 +40,11 @@ func _connect_signals() -> void:
 	if precip_slider and precip_value:
 		precip_value.text = _format_percent(precip_slider.value)
 		precip_slider.value_changed.connect(func(v: float) -> void: precip_value.text = _format_percent(v))
+	var points_slider := vbox.get_node_or_null("PointsBlock/PointsSlider") as HSlider
+	var points_value := vbox.get_node_or_null("PointsBlock/PointsTopRow/PointsValue") as Label
+	if points_slider and points_value:
+		points_value.text = str(int(points_slider.value))
+		points_slider.value_changed.connect(func(v: float) -> void: points_value.text = str(int(v)))
 
 
 func _format_percent(v: float) -> String:
@@ -61,14 +66,52 @@ func _on_generate_pressed() -> void:
 	var size_opt := vbox.get_node_or_null("SizeRow/SizeOpt") as OptionButton
 	var temp_slider := vbox.get_node_or_null("TempBlock/TempSlider") as HSlider
 	var precip_slider := vbox.get_node_or_null("PrecipBlock/PrecipSlider") as HSlider
+	var points_slider := vbox.get_node_or_null("PointsBlock/PointsSlider") as HSlider
 
 	var seed_text: String = seed_edit.text if seed_edit else ""
-	var world_size: String = size_opt.get_item_text(size_opt.selected) if size_opt else ""
+	var world_size_idx: int = size_opt.selected if size_opt else 1
 	var temperature: float = temp_slider.value if temp_slider else 0.0
 	var precipitation: float = precip_slider.value if precip_slider else 0.0
+	var num_points: int = int(points_slider.value) if points_slider else 256
 
-	print("[WorldGen] seed=\"", seed_text, "\" world_size=\"", world_size, "\" temperature=", temperature, "% precipitation=", precipitation, "%")
+	var form_dict: Dictionary = {
+		"seed": seed_text,
+		"world_size": world_size_idx,
+		"temperature": temperature,
+		"precipitation": precipitation,
+		"planet_preset": "Earthlike",
+		"voronoi_sites": num_points
+	}
+	var result = SimAPI.apply_world_gen_form(form_dict)
+	print("[WorldGen] result keys: ", result.keys())
+	var sites = result.get("sites", null)
+	var triangles = result.get("triangles", null)
 
+	print("[WorldGen] applied form seed=\"", seed_text, "\" world_size=", world_size_idx, " temperature=", temperature, "% precipitation=", precipitation, "%")
+	if sites:
+		print("[WorldGen] sites count: ", sites.size())
+	else:
+		print("[WorldGen] sites is null or missing")
+	if triangles != null:
+		print("[WorldGen] triangles count: ", triangles.size())
+		if triangles.size() == 0:
+			print("[WorldGen] triangles is empty array")
+	else:
+		print("[WorldGen] triangles is null or missing")
+
+	var main = get_parent().get_parent() if get_parent() else null
+	if main:
+		var preview_scene = load("res://godot/debug/SpherePreview.tscn") as PackedScene
+		if preview_scene:
+			var preview = preview_scene.instantiate()
+			main.add_child(preview)
+			if sites and sites.size() > 0:
+				preview.set_sites(sites)
+			if triangles and triangles.size() > 0:
+				preview.set_triangles(Array(triangles))
+			print("[WorldGen] added SpherePreview to main scene")
+		else:
+			push_error("[WorldGen] failed to load SpherePreview.tscn")
 	queue_free()
 
 

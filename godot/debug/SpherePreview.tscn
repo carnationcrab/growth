@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bis5ea8mry0ps"]
+
+[ext_resource type="Script" path="res://godot/debug/SpherePreview.cs" id="1_script"]
+
+[node name="SpherePreview" type="Node3D"]
+script = ExtResource("1_script")

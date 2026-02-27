@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<planet_presets xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:noNamespaceSchemaLocation="../schemas/planet_presets.xsd">
+  <preset preset_id="earthlike" name="Earthlike">
+    <dist knob="L_star" type="Uniform" a="3.4452e26" b="4.2108e26"/>
+    <dist knob="S_eff_target" type="Normal" a="1.0" b="0.15" c="0.8" d="1.2"/>
+    <dist knob="e" type="Uniform" a="0" b="0.08"/>
+    <dist knob="M_p" type="Uniform" a="4.7776e24" b="7.1664e24"/>
+    <dist knob="R_p" type="Uniform" a="6.05245e6" b="6.68955e6"/>
+    <dist knob="P_rot" type="Uniform" a="75600" b="97200"/>
+    <dist knob="obliquity" type="Normal" a="0.4091" b="0.1" c="0.2" d="0.6"/>
+    <dist knob="p0" type="Uniform" a="90000" b="111000"/>
+    <dist knob="albedo" type="Uniform" a="0.28" b="0.35"/>
+    <dist knob="greenhouse_factor" type="Uniform" a="0.95" b="1.08"/>
+    <dist knob="water_fraction" type="Uniform" a="0.65" b="0.75"/>
+    <dist knob="precipitation" type="Uniform" a="0.4" b="0.7"/>
+    <constraints insolation_min="0.85" insolation_max="1.15" surface_temp_min="273" surface_temp_max="310"
+                 gravity_min="8.5" gravity_max="11.5" pressure_min="70000" pressure_max="140000"
+                 eccentricity_max="0.2" max_attempts="32"/>
+    <material_weights high_silicate="0.6" organic="0.3"/>
+  </preset>
+  <preset preset_id="ocean_world" name="OceanWorld">
+    <dist knob="water_fraction" type="Uniform" a="0.85" b="0.95"/>
+    <dist knob="precipitation" type="Uniform" a="0.6" b="0.95"/>
+    <dist knob="p0" type="Uniform" a="100000" b="150000"/>
+    <constraints surface_temp_max="320"/>
+    <material_weights high_silicate="0.6" organic="0.3"/>
+  </preset>
+  <preset preset_id="dry" name="Dry">
+    <dist knob="water_fraction" type="Uniform" a="0.1" b="0.35"/>
+    <dist knob="precipitation" type="Uniform" a="0.05" b="0.25"/>
+    <dist knob="albedo" type="Uniform" a="0.32" b="0.42"/>
+    <material_weights high_silicate="0.6" organic="0.3"/>
+  </preset>
+</planet_presets>

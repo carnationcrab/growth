@@ -17,6 +17,7 @@
 	<file>defs/interactions.xml</file>
 	<file>defs/ui_strings.xml</file>
 	<file>defs/ui_assets.xml</file>
+	<file>defs/planet_presets.xml</file>
   </defs>
   <schemas>
 	<file>schemas/surfaces.xsd</file>
@@ -32,6 +33,7 @@
 	<file>schemas/interactions.xsd</file>
 	<file>schemas/ui_strings.xsd</file>
 	<file>schemas/ui_assets.xsd</file>
+	<file>schemas/planet_presets.xsd</file>
 	<file>schemas/manifest.xsd</file>
 	<file>schemas/pack_manifest.xsd</file>
 	<file>schemas/points_of_interest.xsd</file>

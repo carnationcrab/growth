@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <!-- Planet generation presets. Each preset defines a named configuration (Earthlike, OceanWorld, Dry, etc.)
+       that can be applied to a PlanetGenBlueprint. C++ may use built-in preset logic; this schema
+       documents the structure for XML-defined presets and future loaders. -->
+  <xs:element name="planet_presets">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="preset" type="PlanetPresetDef" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="PlanetPresetDef">
+    <xs:sequence>
+      <xs:element name="dist" type="DistSpecDef" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="constraints" type="ConstraintsDef" minOccurs="0"/>
+      <xs:element name="material_weights" type="MaterialWeightsDef" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="preset_id" type="xs:ID" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="DistSpecDef">
+    <xs:attribute name="knob" type="xs:string" use="required"/>
+    <xs:attribute name="type" use="required">
+      <xs:simpleType>
+        <xs:restriction base="xs:token">
+          <xs:enumeration value="Constant"/>
+          <xs:enumeration value="Uniform"/>
+          <xs:enumeration value="LogUniform"/>
+          <xs:enumeration value="Normal"/>
+          <xs:enumeration value="Beta"/>
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:attribute>
+    <xs:attribute name="a" type="xs:double" use="optional"/>
+    <xs:attribute name="b" type="xs:double" use="optional"/>
+    <xs:attribute name="c" type="xs:double" use="optional"/>
+    <xs:attribute name="d" type="xs:double" use="optional"/>
+    <xs:attribute name="log_space" type="xs:boolean" use="optional" default="false"/>
+  </xs:complexType>
+
+  <xs:complexType name="ConstraintsDef">
+    <xs:attribute name="insolation_min" type="xs:double" use="optional"/>
+    <xs:attribute name="insolation_max" type="xs:double" use="optional"/>
+    <xs:attribute name="surface_temp_min" type="xs:double" use="optional"/>
+    <xs:attribute name="surface_temp_max" type="xs:double" use="optional"/>
+    <xs:attribute name="gravity_min" type="xs:double" use="optional"/>
+    <xs:attribute name="gravity_max" type="xs:double" use="optional"/>
+    <xs:attribute name="pressure_min" type="xs:double" use="optional"/>
+    <xs:attribute name="pressure_max" type="xs:double" use="optional"/>
+    <xs:attribute name="eccentricity_max" type="xs:double" use="optional"/>
+    <xs:attribute name="max_attempts" type="xs:positiveInteger" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="MaterialWeightsDef">
+    <xs:attribute name="iron_rich" type="xs:double" use="optional"/>
+    <xs:attribute name="high_silicate" type="xs:double" use="optional"/>
+    <xs:attribute name="ice" type="xs:double" use="optional"/>
+    <xs:attribute name="organic" type="xs:double" use="optional"/>
+    <xs:attribute name="volatile" type="xs:double" use="optional"/>
+    <xs:attribute name="low_metal" type="xs:double" use="optional"/>
+  </xs:complexType>
+</xs:schema>
