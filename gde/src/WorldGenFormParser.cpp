@@ -43,7 +43,7 @@ void parse_world_gen_form(const Dictionary &form_dict, growth::ParsedWorldGenFor
 		if (key == "voronoi_sites" && (v.get_type() == Variant::INT || v.get_type() == Variant::FLOAT)) {
 			int64_t n = v.get_type() == Variant::FLOAT ? static_cast<int64_t>(v.operator double()) : v.operator int64_t();
 			if (n < 32) n = 32;
-			if (n > 4096) n = 4096;
+			if (n > 1000000) n = 1000000;
 			out.voronoi_sites = static_cast<size_t>(n);
 			continue;
 		}

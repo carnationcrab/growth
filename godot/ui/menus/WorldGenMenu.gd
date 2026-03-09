@@ -101,17 +101,23 @@ func _on_generate_pressed() -> void:
 
 	var main = get_parent().get_parent() if get_parent() else null
 	if main:
-		var preview_scene = load("res://godot/debug/SpherePreview.tscn") as PackedScene
-		if preview_scene:
-			var preview = preview_scene.instantiate()
-			main.add_child(preview)
-			if sites and sites.size() > 0:
-				preview.set_sites(sites)
-			if triangles and triangles.size() > 0:
-				preview.set_triangles(Array(triangles))
-			print("[WorldGen] added SpherePreview to main scene")
-		else:
-			push_error("[WorldGen] failed to load SpherePreview.tscn")
+		# Reuse existing SpherePreview so we don't stack multiple (old one was the phantom).
+		var preview = main.get_node_or_null("SpherePreview")
+		for child in main.get_children():
+			if child.name == "SpherePreview" and child != preview:
+				child.queue_free()
+		if preview == null:
+			var preview_scene = load("res://godot/debug/SpherePreview.tscn") as PackedScene
+			if preview_scene:
+				preview = preview_scene.instantiate()
+				main.add_child(preview)
+				print("[WorldGen] added SpherePreview to main scene")
+			else:
+				push_error("[WorldGen] failed to load SpherePreview.tscn")
+		if preview and sites and sites.size() > 0:
+			preview.set_sites(sites)
+		if preview and triangles and triangles.size() > 0:
+			preview.set_triangles(Array(triangles))
 	queue_free()
 
 

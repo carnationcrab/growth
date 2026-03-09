@@ -219,6 +219,10 @@ public partial class SpherePreview : Node3D
 
 	private void BuildPoints(Vector3[] sites)
 	{
+		var existing = GetNodeOrNull<MultiMeshInstance3D>("Sites");
+		if (existing != null)
+			existing.QueueFree();
+
 		// Each Fibonacci point is its own little sphere; one contrasting color so they read clearly.
 		float pointScale = PointRadius * 2.0f;
 		var basis = new Basis(new Vector3(pointScale, 0, 0), new Vector3(0, pointScale, 0), new Vector3(0, 0, pointScale));
@@ -258,23 +262,31 @@ public partial class SpherePreview : Node3D
 
 		int siteCount = _sites.Length;
 		int maxIndex = siteCount - 1;
+		int capIndex = siteCount - 1; // Cap (hole-fill) vertex is last site when present
 
 		// Unique edges from triangles; only include edges whose indices are valid for _sites.
 		GD.Print("[SpherePreview] BuildDelaunayLayer: ", _triangles.Length / 3, " triangles, ", siteCount, " sites.");
 		var edgeSet = new System.Collections.Generic.HashSet<(int, int)>();
 		int invalidCount = 0;
+		int capTriCount = 0;
+		int capTriSkipped = 0;
 		for (int i = 0; i < _triangles.Length; i += 3)
 		{
 			int a = _triangles[i], b = _triangles[i + 1], c = _triangles[i + 2];
+			bool referencesCap = (a == capIndex || b == capIndex || c == capIndex);
+			if (referencesCap) capTriCount++;
 			if (a < 0 || a > maxIndex || b < 0 || b > maxIndex || c < 0 || c > maxIndex)
 			{
 				invalidCount++;
+				if (referencesCap) capTriSkipped++;
 				continue;
 			}
 			AddEdge(edgeSet, a, b);
 			AddEdge(edgeSet, b, c);
 			AddEdge(edgeSet, c, a);
 		}
+		if (capTriCount > 0)
+			GD.Print("[SpherePreview] Cap triangulation: ", capTriCount, " triangles reference cap index ", capIndex, " (skipped ", capTriSkipped, ").");
 		if (invalidCount > 0)
 			GD.PushWarning($"[SpherePreview] Skipped {invalidCount} triangles with out-of-range indices (sites length {siteCount}).");
 

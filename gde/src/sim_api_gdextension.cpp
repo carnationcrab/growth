@@ -97,6 +97,28 @@ Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
 	for (int64_t i = 0; i < flat_size; ++i)
 		tri_arr[i] = _last_world_gen_triangles[i];
 	out["triangles"] = tri_arr;
+
+	// Voronoi vertices (circumcenters on unit sphere)
+	const auto &circumcenters = voronoi_sphere.circumcenters;
+	PackedVector3Array circumcenters_arr;
+	circumcenters_arr.resize(static_cast<int64_t>(circumcenters.size()));
+	for (size_t i = 0; i < circumcenters.size(); ++i)
+		circumcenters_arr.set(static_cast<int64_t>(i), Vector3(circumcenters[i].x, circumcenters[i].y, circumcenters[i].z));
+	out["circumcenters"] = circumcenters_arr;
+
+	// Per-site cells: each cell is an array of circumcenter indices
+	Array cells_arr;
+	cells_arr.resize(static_cast<int64_t>(voronoi_sphere.cells.size()));
+	for (size_t i = 0; i < voronoi_sphere.cells.size(); ++i) {
+		PackedInt32Array cell;
+		const auto &c = voronoi_sphere.cells[i];
+		cell.resize(static_cast<int64_t>(c.size()));
+		for (size_t j = 0; j < c.size(); ++j)
+			cell.set(static_cast<int64_t>(j), static_cast<int32_t>(c[j]));
+		cells_arr[i] = cell;
+	}
+	out["cells"] = cells_arr;
+
 	return out;
 }
 
