@@ -81,5 +81,13 @@ layout_mode = 2
 
 [node name="VoronoiCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/VoronoiRow"]
 layout_mode = 2
-button_pressed = false
+button_pressed = true
 text = "Voronoi regions"
+
+[node name="TectonicPlatesRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+layout_mode = 2
+
+[node name="TectonicPlatesCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/TectonicPlatesRow"]
+layout_mode = 2
+button_pressed = true
+text = "Tectonic plates"

@@ -106,6 +106,58 @@ max_value = 1000000.0
 value = 256.0
 step = 1.0
 
+[node name="JitterBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
+layout_mode = 2
+
+[node name="JitterTopRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/JitterBlock"]
+layout_mode = 2
+
+[node name="JitterLabel" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/JitterBlock/JitterTopRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Jitter"
+
+[node name="JitterValue" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/JitterBlock/JitterTopRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "25%"
+horizontal_alignment = 2
+
+[node name="JitterSlider" type="HSlider" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/JitterBlock"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 100.0
+value = 25.0
+step = 1.0
+
+[node name="PlatesBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
+layout_mode = 2
+
+[node name="PlatesTopRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PlatesBlock"]
+layout_mode = 2
+
+[node name="PlatesLabel" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PlatesBlock/PlatesTopRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Tectonic plates"
+
+[node name="PlatesValue" type="Label" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PlatesBlock/PlatesTopRow"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "25"
+horizontal_alignment = 2
+
+[node name="PlatesSlider" type="HSlider" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PlatesBlock"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 10.0
+max_value = 50.0
+value = 25.0
+step = 1.0
+
 [node name="TempBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
 layout_mode = 2
 
@@ -121,7 +173,7 @@ text = "Temperature"
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "50%"
+text = "100%"
 horizontal_alignment = 2
 
 [node name="TempSlider" type="HSlider" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/TempBlock"]
@@ -129,7 +181,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 min_value = 0.0
 max_value = 200.0
-value = 50.0
+value = 100.0
 step = 1.0
 
 [node name="PrecipBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
@@ -147,7 +199,7 @@ text = "Precipitation"
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "50%"
+text = "100%"
 horizontal_alignment = 2
 
 [node name="PrecipSlider" type="HSlider" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PrecipBlock"]
@@ -155,7 +207,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 min_value = 0.0
 max_value = 200.0
-value = 50.0
+value = 100.0
 step = 1.0
 
 [node name="BottomRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]

@@ -96,6 +96,24 @@ public partial class SimAPI : Node
 				}
 				if (dict.ContainsKey("cells"))
 					result["cells"] = dict["cells"];
+				if (dict.ContainsKey("plate_regions"))
+				{
+					var pr = dict["plate_regions"].As<int[]>();
+					if (pr != null && pr.Length > 0)
+					{
+						var prArr = new Godot.Collections.Array();
+						foreach (var x in pr) prArr.Add(x);
+						result["plate_regions"] = prArr;
+						GD.Print("[SimAPI] apply_world_gen_form: plate_regions forwarded size=", pr.Length);
+					}
+					else
+					{
+						result["plate_regions"] = dict["plate_regions"];
+						GD.Print("[SimAPI] apply_world_gen_form: plate_regions forwarded (raw)");
+					}
+				}
+				else
+					GD.Print("[SimAPI] apply_world_gen_form: no plate_regions in result");
 				return result;
 			}
 		}

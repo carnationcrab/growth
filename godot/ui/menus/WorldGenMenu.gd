@@ -45,6 +45,16 @@ func _connect_signals() -> void:
 	if points_slider and points_value:
 		points_value.text = str(int(points_slider.value))
 		points_slider.value_changed.connect(func(v: float) -> void: points_value.text = str(int(v)))
+	var plates_slider := vbox.get_node_or_null("PlatesBlock/PlatesSlider") as HSlider
+	var plates_value := vbox.get_node_or_null("PlatesBlock/PlatesTopRow/PlatesValue") as Label
+	if plates_slider and plates_value:
+		plates_value.text = str(int(plates_slider.value))
+		plates_slider.value_changed.connect(func(v: float) -> void: plates_value.text = str(int(v)))
+	var jitter_slider := vbox.get_node_or_null("JitterBlock/JitterSlider") as HSlider
+	var jitter_value := vbox.get_node_or_null("JitterBlock/JitterTopRow/JitterValue") as Label
+	if jitter_slider and jitter_value:
+		jitter_value.text = _format_percent(jitter_slider.value)
+		jitter_slider.value_changed.connect(func(v: float) -> void: jitter_value.text = _format_percent(v))
 
 
 func _format_percent(v: float) -> String:
@@ -67,12 +77,16 @@ func _on_generate_pressed() -> void:
 	var temp_slider := vbox.get_node_or_null("TempBlock/TempSlider") as HSlider
 	var precip_slider := vbox.get_node_or_null("PrecipBlock/PrecipSlider") as HSlider
 	var points_slider := vbox.get_node_or_null("PointsBlock/PointsSlider") as HSlider
+	var jitter_slider := vbox.get_node_or_null("JitterBlock/JitterSlider") as HSlider
+	var plates_slider := vbox.get_node_or_null("PlatesBlock/PlatesSlider") as HSlider
 
 	var seed_text: String = seed_edit.text if seed_edit else ""
 	var world_size_idx: int = size_opt.selected if size_opt else 1
 	var temperature: float = temp_slider.value if temp_slider else 0.0
 	var precipitation: float = precip_slider.value if precip_slider else 0.0
 	var num_points: int = int(points_slider.value) if points_slider else 256
+	var jitter: float = jitter_slider.value if jitter_slider else 0.0
+	var num_plates: int = int(plates_slider.value) if plates_slider else 25
 
 	var form_dict: Dictionary = {
 		"seed": seed_text,
@@ -80,7 +94,9 @@ func _on_generate_pressed() -> void:
 		"temperature": temperature,
 		"precipitation": precipitation,
 		"planet_preset": "Earthlike",
-		"voronoi_sites": num_points
+		"voronoi_sites": num_points,
+		"jitter": jitter,
+		"num_plate_regions": num_plates
 	}
 	var result = SimAPI.apply_world_gen_form(form_dict)
 	print("[WorldGen] result keys: ", result.keys())
@@ -108,6 +124,11 @@ func _on_generate_pressed() -> void:
 		print("[WorldGen] cells count: ", cells.size())
 	else:
 		print("[WorldGen] cells is null or missing")
+	var plate_regions_pre = result.get("plate_regions", null)
+	if plate_regions_pre != null:
+		print("[WorldGen] plate_regions count: ", plate_regions_pre.size())
+	else:
+		print("[WorldGen] plate_regions is null or missing")
 
 	var main = get_parent().get_parent() if get_parent() else null
 	if main:
@@ -132,6 +153,13 @@ func _on_generate_pressed() -> void:
 			preview.set_circumcenters(circumcenters)
 		if preview and cells and cells.size() > 0:
 			preview.set_cells(cells)
+		var plate_regions = result.get("plate_regions", null)
+		if plate_regions != null and plate_regions.size() > 0:
+			print("[WorldGen] passing plate_regions to preview size=", plate_regions.size())
+			if preview:
+				preview.set_plate_regions(plate_regions)
+		elif preview:
+			print("[WorldGen] no plate_regions to pass (null or empty)")
 	queue_free()
 
 

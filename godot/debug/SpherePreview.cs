@@ -28,6 +28,7 @@ public partial class SpherePreview : Node3D
 	private int[] _triangles;
 	private Vector3[] _circumcenters;
 	private int[][] _cells;
+	private int[] _plateRegions;
 
 	public override void _Ready()
 	{
@@ -210,6 +211,46 @@ public partial class SpherePreview : Node3D
 			}
 		}
 		SetCells(cellList);
+	}
+
+	/// <summary>Plate assignment per Voronoi region: plate_regions[site_idx] = plate id (0 .. num_plates-1).</summary>
+	public void SetPlateRegions(int[] plateRegions)
+	{
+		_plateRegions = plateRegions;
+		GD.Print("[SpherePreview] SetPlateRegions: regions=", plateRegions?.Length ?? 0,
+			" circumcenters=", _circumcenters?.Length ?? 0, " cells=", _cells?.Length ?? 0);
+		if (_circumcenters == null || _cells == null)
+		{
+			GD.Print("[SpherePreview] SetPlateRegions: skip build (circumcenters or cells not set yet)");
+			return;
+		}
+		if (_plateRegions == null || _plateRegions.Length < _cells.Length)
+		{
+			GD.Print("[SpherePreview] SetPlateRegions: skip build (plateRegions.Length ", _plateRegions?.Length ?? 0, " < cells.Length ", _cells.Length, ")");
+			return;
+		}
+		BuildTectonicPlatesLayer();
+	}
+
+	/// <summary>GDScript-callable; accepts PackedInt32Array or Array from apply_world_gen_form result.</summary>
+	public void set_plate_regions(Variant plateRegions)
+	{
+		var packed = plateRegions.As<int[]>();
+		if (packed != null && packed.Length > 0)
+		{
+			SetPlateRegions(packed);
+			return;
+		}
+		var arr = plateRegions.As<Godot.Collections.Array>();
+		if (arr != null && arr.Count > 0)
+		{
+			var iarr = new int[arr.Count];
+			for (int i = 0; i < arr.Count; i++)
+				iarr[i] = (int)arr[i].As<long>();
+			SetPlateRegions(iarr);
+			return;
+		}
+		GD.PushWarning("[SpherePreview] set_plate_regions: could not convert to int array.");
 	}
 
 	public override void _Process(double delta)
@@ -490,6 +531,91 @@ public partial class SpherePreview : Node3D
 		AddChild(container);
 		container.Visible = true;
 		GD.Print("[SpherePreview] Voronoi regions layer added: ", edgeCount, " edges (cells=", _cells.Length, ").");
+	}
+
+	/// <summary>Tectonic plates: each Voronoi cell filled with a colour by plate id (palette of up to 50).</summary>
+	private void BuildTectonicPlatesLayer()
+	{
+		if (_circumcenters == null || _cells == null || _plateRegions == null || _cells.Length > _plateRegions.Length)
+		{
+			GD.Print("[SpherePreview] BuildTectonicPlatesLayer: skip (missing data or _cells.Length ", _cells?.Length ?? 0, " > _plateRegions.Length ", _plateRegions?.Length ?? 0, ")");
+			return;
+		}
+		var existing = GetNodeOrNull<Node3D>("TectonicPlates");
+		if (existing != null)
+			existing.QueueFree();
+
+		// Slightly outside sphere so plates render on top of the globe (avoid z-fight / occlusion).
+		const float plateRadiusScale = 1.002f;
+
+		// Distinct colours per plate (repeat if num_plates > palette length).
+		var palette = new Color[] {
+			new Color(0.85f, 0.35f, 0.25f), new Color(0.35f, 0.65f, 0.85f), new Color(0.55f, 0.75f, 0.35f),
+			new Color(0.9f, 0.7f, 0.2f), new Color(0.6f, 0.4f, 0.75f), new Color(0.3f, 0.8f, 0.8f),
+			new Color(0.95f, 0.5f, 0.5f), new Color(0.4f, 0.5f, 0.9f), new Color(0.7f, 0.85f, 0.45f),
+			new Color(0.8f, 0.6f, 0.2f), new Color(0.5f, 0.35f, 0.7f), new Color(0.25f, 0.7f, 0.7f),
+			new Color(0.9f, 0.4f, 0.4f), new Color(0.45f, 0.6f, 0.9f), new Color(0.65f, 0.8f, 0.3f),
+			new Color(0.75f, 0.65f, 0.25f), new Color(0.55f, 0.45f, 0.8f), new Color(0.35f, 0.75f, 0.65f),
+			new Color(0.8f, 0.45f, 0.45f), new Color(0.5f, 0.55f, 0.85f), new Color(0.7f, 0.9f, 0.5f),
+			new Color(0.85f, 0.55f, 0.15f), new Color(0.6f, 0.5f, 0.75f), new Color(0.4f, 0.85f, 0.8f),
+			new Color(0.75f, 0.3f, 0.3f), new Color(0.4f, 0.7f, 0.95f), new Color(0.6f, 0.8f, 0.4f),
+			new Color(0.9f, 0.75f, 0.35f), new Color(0.65f, 0.4f, 0.7f), new Color(0.3f, 0.65f, 0.6f),
+			new Color(0.95f, 0.55f, 0.5f), new Color(0.55f, 0.6f, 0.9f), new Color(0.75f, 0.85f, 0.45f),
+			new Color(0.8f, 0.5f, 0.2f), new Color(0.5f, 0.55f, 0.8f), new Color(0.45f, 0.8f, 0.7f),
+			new Color(0.85f, 0.4f, 0.35f), new Color(0.45f, 0.65f, 0.85f), new Color(0.65f, 0.75f, 0.35f),
+			new Color(0.9f, 0.65f, 0.25f), new Color(0.6f, 0.45f, 0.75f), new Color(0.35f, 0.7f, 0.75f),
+			new Color(0.8f, 0.5f, 0.5f), new Color(0.5f, 0.5f, 0.9f), new Color(0.7f, 0.8f, 0.5f),
+			new Color(0.75f, 0.6f, 0.2f), new Color(0.55f, 0.5f, 0.7f), new Color(0.4f, 0.8f, 0.65f),
+			new Color(0.9f, 0.45f, 0.4f), new Color(0.4f, 0.6f, 0.9f), new Color(0.6f, 0.85f, 0.4f),
+			new Color(0.85f, 0.7f, 0.3f), new Color(0.65f, 0.4f, 0.65f)
+		};
+
+		var verts = new Vector3[_circumcenters.Length];
+		for (int i = 0; i < _circumcenters.Length; i++)
+			verts[i] = SimToGodot(_circumcenters[i]) * (SphereRadius * plateRadiusScale);
+
+		var imm = new ImmediateMesh();
+		imm.SurfaceBegin(Mesh.PrimitiveType.Triangles);
+		int maxIdx = verts.Length - 1;
+		int triCount = 0;
+		for (int site = 0; site < _cells.Length && site < _plateRegions.Length; site++)
+		{
+			var cell = _cells[site];
+			if (cell == null || cell.Length < 3) continue;
+			int plateId = _plateRegions[site];
+			if (plateId < 0) continue;
+			var col = palette[plateId % palette.Length];
+			for (int j = 1; j < cell.Length - 1; j++)
+			{
+				int i0 = cell[0], i1 = cell[j], i2 = cell[j + 1];
+				if (i0 < 0 || i0 > maxIdx || i1 < 0 || i1 > maxIdx || i2 < 0 || i2 > maxIdx) continue;
+				imm.SurfaceSetColor(col);
+				imm.SurfaceAddVertex(verts[i0]);
+				imm.SurfaceSetColor(col);
+				imm.SurfaceAddVertex(verts[i1]);
+				imm.SurfaceSetColor(col);
+				imm.SurfaceAddVertex(verts[i2]);
+				triCount++;
+			}
+		}
+		imm.SurfaceEnd();
+
+		var mat = new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			Transparency = BaseMaterial3D.TransparencyEnum.Disabled,
+			VertexColorUseAsAlbedo = true,
+			CullMode = BaseMaterial3D.CullModeEnum.Disabled
+		};
+		var container = new Node3D { Name = "TectonicPlates" };
+		container.AddChild(new MeshInstance3D
+		{
+			Mesh = imm,
+			MaterialOverride = mat
+		});
+		AddChild(container);
+		container.Visible = true;
+		GD.Print("[SpherePreview] Tectonic plates layer added: triangles=", triCount, " cells=", _cells.Length, " radius_scale=", plateRadiusScale);
 	}
 
 	private void ClearWorldTerrain()

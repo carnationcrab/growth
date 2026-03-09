@@ -7,6 +7,8 @@
 #include "gen/WorldSeed.hpp"
 #include "gen/Planet.hpp"
 #include "world/PlanetGlobeGenerator.hpp"
+#include "world/TectonicPlateAssigner.hpp"
+#include "world/TectonicPlates.hpp"
 #include "world/VoronoiSphere.hpp"
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
@@ -67,10 +69,10 @@ Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
 		" T_surf_K=", p.T_surf_estimate(), " precip=", planet_genome.precipitation, " water=", planet_genome.water_fraction,
 		" scale_height_m=", p.scale_height());
 
-	UtilityFunctions::print("[PlanetGlobe] began processing (sites=", (int64_t)parsed.voronoi_sites, ")");
+	UtilityFunctions::print("[PlanetGlobe] began processing (sites=", (int64_t)parsed.voronoi_sites, " jitter=", parsed.jitter, "%)");
 	growth::VoronoiSphere voronoi_sphere;
 	growth::PlanetGlobeGenerator globe_gen;
-	globe_gen.run(world_seed, planet_genome, voronoi_sphere, parsed.voronoi_sites);
+	globe_gen.run(world_seed, planet_genome, voronoi_sphere, parsed.voronoi_sites, parsed.jitter);
 
 	// Sites in sim coords (Z-up); SpherePreview converts to Godot Y-up for display.
 	const auto &sites = voronoi_sphere.sites;
@@ -118,6 +120,18 @@ Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
 		cells_arr[i] = cell;
 	}
 	out["cells"] = cells_arr;
+
+	// Tectonic plates: assign each Voronoi region to a plate (random fill from N seeds).
+	UtilityFunctions::print("[PlanetGlobe] tectonic plates: num_plate_regions=", (int64_t)parsed.num_plate_regions);
+	growth::TectonicPlates tectonic_plates;
+	growth::TectonicPlateAssigner plate_assigner;
+	plate_assigner.assign(voronoi_sphere, world_seed, parsed.num_plate_regions, tectonic_plates);
+	PackedInt32Array plate_regions_arr;
+	plate_regions_arr.resize(static_cast<int64_t>(tectonic_plates.region_to_plate.size()));
+	for (size_t i = 0; i < tectonic_plates.region_to_plate.size(); ++i)
+		plate_regions_arr.set(static_cast<int64_t>(i), tectonic_plates.region_to_plate[i]);
+	out["plate_regions"] = plate_regions_arr;
+	UtilityFunctions::print("[WorldGen] plate_regions size=", plate_regions_arr.size(), " num_plates=", (int64_t)tectonic_plates.num_plates);
 
 	return out;
 }

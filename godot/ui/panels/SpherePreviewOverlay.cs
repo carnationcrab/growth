@@ -46,6 +46,8 @@ public partial class SpherePreviewOverlay : Control
 		var circumcentersNow = preview.GetNodeOrNull<Node3D>("Circumcenters");
 		var voronoiCb = vbox.GetNodeOrNull<CheckBox>("VoronoiRow/VoronoiCheck");
 		var voronoiNow = preview.GetNodeOrNull<Node3D>("Voronoi");
+		var tectonicCb = vbox.GetNodeOrNull<CheckBox>("TectonicPlatesRow/TectonicPlatesCheck");
+		var tectonicNow = preview.GetNodeOrNull<Node3D>("TectonicPlates");
 
 		if (sphereCb != null && globe != null)
 		{
@@ -91,9 +93,29 @@ public partial class SpherePreviewOverlay : Control
 				voronoiCb.ButtonPressed = voronoiNow.Visible;
 			voronoiCb.Toggled += (bool on) =>
 			{
-				var voronoi = GetSpherePreview()?.GetNodeOrNull<Node3D>("Voronoi");
+				var previewNode = GetSpherePreview() as Node;
+				if (previewNode == null) return;
+				var voronoi = previewNode.GetNodeOrNull<Node3D>("Voronoi");
 				if (voronoi != null)
+				{
 					voronoi.Visible = on;
+					foreach (var child in voronoi.GetChildren())
+					{
+						if (child is Node3D n3d)
+							n3d.Visible = on;
+					}
+				}
+			};
+		}
+		if (tectonicCb != null)
+		{
+			if (tectonicNow != null)
+				tectonicCb.ButtonPressed = tectonicNow.Visible;
+			tectonicCb.Toggled += (bool on) =>
+			{
+				var tectonic = GetSpherePreview()?.GetNodeOrNull<Node3D>("TectonicPlates");
+				if (tectonic != null)
+					tectonic.Visible = on;
 			};
 		}
 	}

@@ -14,6 +14,8 @@ struct ParsedWorldGenForm {
 	double temperature = 100.0;   /// 0–200 from sliders
 	double precipitation = 100.0; /// 0–200 from sliders
 	size_t voronoi_sites = 256;    /// Number of Fibonacci/Voronoi sites (slider; clamped in parser)
+	double jitter = 0.0;           /// Site jitter 0–100 (slider; clamped in parser)
+	size_t num_plate_regions = 25; /// Number of tectonic plates (slider 10–50; clamped in parser)
 };
 
 } // namespace growth

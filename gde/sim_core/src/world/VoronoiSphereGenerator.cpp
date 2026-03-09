@@ -3,7 +3,9 @@
 #include "world/FibonacciSphere.hpp"
 #include "world/VoronoiSphereGenerator.hpp"
 #include "math/Vec3.hpp"
+#include "util/Random.hpp"
 #include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <iostream>
 #include <map>
@@ -92,14 +94,39 @@ namespace {
 			projected[i].y = (projected[i].y - mid_v) * scale_2d;
 		}
 	}
+
+	/// Max tangent-plane displacement at 100% jitter (fraction of radius); keeps Delaunay stable.
+	const float k_max_jitter_radius = 0.25f;
+
+	void apply_site_jitter(std::vector<Vec3> &sites, size_t num_to_jitter, uint64_t seed, float jitter_percent) {
+		if (jitter_percent <= 0.0f || num_to_jitter == 0) return;
+		const float scale = (jitter_percent / 100.0f) * k_max_jitter_radius;
+		random::RNG rng(seed);
+		for (size_t i = 0; i < num_to_jitter; ++i) {
+			Vec3 &p = sites[i];
+			Vec3 axis(0.0f, 0.0f, 1.0f);
+			if (std::fabs(p.z) > 0.9f) axis = Vec3(1.0f, 0.0f, 0.0f);
+			Vec3 u = p.cross(axis);
+			if (u.length() < 1e-6f) continue;
+			u = u.normalised();
+			Vec3 v = p.cross(u).normalised();
+			float r1 = static_cast<float>(rng.next_double() * 2.0 - 1.0);
+			float r2 = static_cast<float>(rng.next_double() * 2.0 - 1.0);
+			Vec3 offset = u * (r1 * scale) + v * (r2 * scale);
+			p = (p + offset).normalised();
+		}
+	}
 } // namespace
 
-VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed & /* world_seed */, size_t num_sites) const {
-	std::cerr << "[VoronoiSphereGenerator] generate start (sites=" << num_sites << ")\n";
+VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size_t num_sites, float jitter_percent) const {
+	std::cerr << "[VoronoiSphereGenerator] generate start (sites=" << num_sites << " jitter=" << jitter_percent << "%)\n";
 	VoronoiSphere out;
 	FibonacciSphere::fill(num_sites, out.sites);
 	const size_t n = out.sites.size();
 	std::cerr << "[VoronoiSphereGenerator] Fibonacci sites: " << n << "\n";
+
+	if (jitter_percent > 0.0f)
+		apply_site_jitter(out.sites, n, world_seed.value, jitter_percent);
 
 	// 1) Project sites to 2D (stereographic) and normalise
 	std::vector<Vec2> projected(n);

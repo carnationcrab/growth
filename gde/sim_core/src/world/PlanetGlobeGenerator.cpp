@@ -3,9 +3,9 @@
 
 namespace growth {
 
-void PlanetGlobeGenerator::run(const WorldSeed &world_seed, const PlanetGenome &planet_genome, VoronoiSphere &voronoi_sphere_out, size_t num_sites) const {
+void PlanetGlobeGenerator::run(const WorldSeed &world_seed, const PlanetGenome &planet_genome, VoronoiSphere &voronoi_sphere_out, size_t num_sites, double jitter_percent) const {
 	VoronoiSphereGenerator voronoi_gen;
-	voronoi_sphere_out = voronoi_gen.generate(world_seed, num_sites);
+	voronoi_sphere_out = voronoi_gen.generate(world_seed, num_sites, static_cast<float>(jitter_percent));
 
 	// TODO: (2) Elevation/noise on sphere cells.
 	// TODO: (3) Tectonic plates and plate movement.

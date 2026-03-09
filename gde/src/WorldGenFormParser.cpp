@@ -16,6 +16,8 @@ void parse_world_gen_form(const Dictionary &form_dict, growth::ParsedWorldGenFor
 	out.temperature = 100.0;
 	out.precipitation = 100.0;
 	out.voronoi_sites = 256;
+	out.jitter = 0.0;
+	out.num_plate_regions = 25;
 	if (form_dict.size() == 0) return;
 
 	Array keys = form_dict.keys();
@@ -45,6 +47,20 @@ void parse_world_gen_form(const Dictionary &form_dict, growth::ParsedWorldGenFor
 			if (n < 32) n = 32;
 			if (n > 1000000) n = 1000000;
 			out.voronoi_sites = static_cast<size_t>(n);
+			continue;
+		}
+		if (key == "jitter" && (v.get_type() == Variant::INT || v.get_type() == Variant::FLOAT)) {
+			double j = v.get_type() == Variant::FLOAT ? v.operator double() : static_cast<double>(v.operator int64_t());
+			if (j < 0.0) j = 0.0;
+			if (j > 100.0) j = 100.0;
+			out.jitter = j;
+			continue;
+		}
+		if (key == "num_plate_regions" && (v.get_type() == Variant::INT || v.get_type() == Variant::FLOAT)) {
+			int64_t n = v.get_type() == Variant::FLOAT ? static_cast<int64_t>(v.operator double()) : v.operator int64_t();
+			if (n < 10) n = 10;
+			if (n > 50) n = 50;
+			out.num_plate_regions = static_cast<size_t>(n);
 			continue;
 		}
 
