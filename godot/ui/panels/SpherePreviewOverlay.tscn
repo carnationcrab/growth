@@ -67,3 +67,19 @@ layout_mode = 2
 layout_mode = 2
 button_pressed = true
 text = "Delaunay"
+
+[node name="CircumcentersRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+layout_mode = 2
+
+[node name="CircumcentersCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/CircumcentersRow"]
+layout_mode = 2
+button_pressed = true
+text = "Circumcenters"
+
+[node name="VoronoiRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+layout_mode = 2
+
+[node name="VoronoiCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/VoronoiRow"]
+layout_mode = 2
+button_pressed = false
+text = "Voronoi regions"

@@ -86,6 +86,8 @@ func _on_generate_pressed() -> void:
 	print("[WorldGen] result keys: ", result.keys())
 	var sites = result.get("sites", null)
 	var triangles = result.get("triangles", null)
+	var circumcenters = result.get("circumcenters", null)
+	var cells = result.get("cells", null)
 
 	print("[WorldGen] applied form seed=\"", seed_text, "\" world_size=", world_size_idx, " temperature=", temperature, "% precipitation=", precipitation, "%")
 	if sites:
@@ -98,6 +100,14 @@ func _on_generate_pressed() -> void:
 			print("[WorldGen] triangles is empty array")
 	else:
 		print("[WorldGen] triangles is null or missing")
+	if circumcenters != null:
+		print("[WorldGen] circumcenters count: ", circumcenters.size())
+	else:
+		print("[WorldGen] circumcenters is null or missing")
+	if cells != null:
+		print("[WorldGen] cells count: ", cells.size())
+	else:
+		print("[WorldGen] cells is null or missing")
 
 	var main = get_parent().get_parent() if get_parent() else null
 	if main:
@@ -118,6 +128,10 @@ func _on_generate_pressed() -> void:
 			preview.set_sites(sites)
 		if preview and triangles and triangles.size() > 0:
 			preview.set_triangles(Array(triangles))
+		if preview and circumcenters and circumcenters.size() > 0:
+			preview.set_circumcenters(circumcenters)
+		if preview and cells and cells.size() > 0:
+			preview.set_cells(cells)
 	queue_free()
 
 

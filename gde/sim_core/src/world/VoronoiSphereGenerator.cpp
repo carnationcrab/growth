@@ -144,13 +144,17 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed & /* world_seed *
 		std::cerr << "[VoronoiSphereGenerator] hole filled: cap index " << cap_idx << ", " << boundary.size() << " fan triangles\n";
 	}
 
-	// 5) Voronoi vertices: one circumcenter (on sphere) per triangle
+	// 5) Voronoi vertices: one circumcenter (on sphere) per triangle.
+	// Circumcenter formula can leave point slightly inside sphere; project onto surface (x/d, y/d, z/d).
 	out.circumcenters.resize(out.triangles.size());
 	for (size_t i = 0; i < out.triangles.size(); ++i) {
 		const auto &t = out.triangles[i];
 		const Vec3 a = out.sites[t[0]], b = out.sites[t[1]], c = out.sites[t[2]];
 		if (!circumcenter_on_sphere(a, b, c, out.circumcenters[i]))
 			out.circumcenters[i] = (a + b + c).normalised();
+		float d = out.circumcenters[i].length();
+		if (d > 1e-9f)
+			out.circumcenters[i] = out.circumcenters[i] / d;
 	}
 
 	// 6) Edge -> triangle indices (for walking neighbour tris)

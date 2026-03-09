@@ -81,6 +81,21 @@ public partial class SimAPI : Node
 					var triArr = triRet.As<Godot.Collections.Array>();
 					result["triangles"] = triArr != null ? triArr : new Godot.Collections.Array();
 				}
+				// Voronoi: copy circumcenters into Array so C#/GDScript receive it reliably (same as triangles)
+				if (dict.ContainsKey("circumcenters"))
+				{
+					var cc = dict["circumcenters"].As<Vector3[]>();
+					if (cc != null && cc.Length > 0)
+					{
+						var ccArr = new Godot.Collections.Array();
+						foreach (var vec in cc) ccArr.Add(vec);
+						result["circumcenters"] = ccArr;
+					}
+					else
+						result["circumcenters"] = dict["circumcenters"];
+				}
+				if (dict.ContainsKey("cells"))
+					result["cells"] = dict["cells"];
 				return result;
 			}
 		}

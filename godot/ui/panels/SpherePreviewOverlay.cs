@@ -42,6 +42,10 @@ public partial class SpherePreviewOverlay : Control
 		var pointsCb = vbox.GetNodeOrNull<CheckBox>("PointsRow/PointsCheck");
 		var delaunayCb = vbox.GetNodeOrNull<CheckBox>("DelaunayRow/DelaunayCheck");
 		var delaunayNow = preview.GetNodeOrNull<Node3D>("Delaunay");
+		var circumcentersCb = vbox.GetNodeOrNull<CheckBox>("CircumcentersRow/CircumcentersCheck");
+		var circumcentersNow = preview.GetNodeOrNull<Node3D>("Circumcenters");
+		var voronoiCb = vbox.GetNodeOrNull<CheckBox>("VoronoiRow/VoronoiCheck");
+		var voronoiNow = preview.GetNodeOrNull<Node3D>("Voronoi");
 
 		if (sphereCb != null && globe != null)
 		{
@@ -68,6 +72,28 @@ public partial class SpherePreviewOverlay : Control
 				var delaunay = GetSpherePreview()?.GetNodeOrNull<Node3D>("Delaunay");
 				if (delaunay != null)
 					delaunay.Visible = on;
+			};
+		}
+		if (circumcentersCb != null)
+		{
+			if (circumcentersNow != null)
+				circumcentersCb.ButtonPressed = circumcentersNow.Visible;
+			circumcentersCb.Toggled += (bool on) =>
+			{
+				var circumcenters = GetSpherePreview()?.GetNodeOrNull<Node3D>("Circumcenters");
+				if (circumcenters != null)
+					circumcenters.Visible = on;
+			};
+		}
+		if (voronoiCb != null)
+		{
+			if (voronoiNow != null)
+				voronoiCb.ButtonPressed = voronoiNow.Visible;
+			voronoiCb.Toggled += (bool on) =>
+			{
+				var voronoi = GetSpherePreview()?.GetNodeOrNull<Node3D>("Voronoi");
+				if (voronoi != null)
+					voronoi.Visible = on;
 			};
 		}
 	}

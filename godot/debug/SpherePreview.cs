@@ -2,8 +2,8 @@ using Godot;
 using System;
 
 /// <summary>
-/// Visualises the Voronoi sphere: unit sphere + Fibonacci sites as points.
-/// Sim backend uses Z-up (north pole +Z); we convert to Godot Y-up when storing sites.
+/// Renders the Voronoi sphere from C++ backend data only. All logic (sites, Delaunay, circumcenters, Voronoi cells) is computed in C++; this layer just draws what it receives (sites, triangles, circumcenters, cells).
+/// Sim backend uses Z-up (north pole +Z); we convert to Godot Y-up for display.
 /// Arrow keys / WASD: orbit. Shift + Arrow/WASD: zoom in/out.
 /// </summary>
 public partial class SpherePreview : Node3D
@@ -13,7 +13,7 @@ public partial class SpherePreview : Node3D
 	{
 		return new Vector3(sim.X, sim.Z, sim.Y);
 	}
-	private const float PointRadius = 0.55f;  // Radius of each Fibonacci point sphere
+	private const float PointRadius = 0.38f;  // Radius of each Fibonacci point sphere
 	private const float SphereRadius = 15.0f;
 	private const float OrbitSpeed = 1.5f;
 	private const float ZoomSpeed = 8.0f;
@@ -26,6 +26,8 @@ public partial class SpherePreview : Node3D
 	private Camera3D _camera;
 	private Vector3[] _sites;
 	private int[] _triangles;
+	private Vector3[] _circumcenters;
+	private int[][] _cells;
 
 	public override void _Ready()
 	{
@@ -130,6 +132,84 @@ public partial class SpherePreview : Node3D
 			return;
 		}
 		GD.PushWarning("[SpherePreview] set_triangles: could not convert to int array (VariantType=", (int)triangles.VariantType, ").");
+	}
+
+	/// <summary>Voronoi vertices (triangle circumcenters on unit sphere, sim Z-up). We convert to Y-up and scale by SphereRadius.</summary>
+	public void SetCircumcenters(Vector3[] circumcenters)
+	{
+		_circumcenters = circumcenters;
+		GD.Print("[SpherePreview] SetCircumcenters: ", circumcenters?.Length ?? 0);
+		if (_circumcenters != null && _circumcenters.Length > 0)
+		{
+			BuildCircumcentersLayer();
+			if (_cells != null && _cells.Length > 0)
+				BuildVoronoiRegionsLayer();
+		}
+	}
+
+	/// <summary>GDScript-callable; accepts Array or Vector3[] from apply_world_gen_form (PackedVector3Array marshals as one of these in C#).</summary>
+	public void set_circumcenters(Variant circumcenters)
+	{
+		var vecArr = circumcenters.As<Vector3[]>();
+		if (vecArr != null && vecArr.Length > 0)
+		{
+			SetCircumcenters(vecArr);
+			return;
+		}
+		var arr = circumcenters.As<Godot.Collections.Array>();
+		if (arr != null && arr.Count > 0)
+		{
+			var vecs = new Vector3[arr.Count];
+			for (int i = 0; i < arr.Count; i++)
+				vecs[i] = (Vector3)arr[i];
+			SetCircumcenters(vecs);
+			return;
+		}
+		GD.PushWarning("[SpherePreview] set_circumcenters: could not convert to Vector3 array (VariantType=", (int)circumcenters.VariantType, ").");
+	}
+
+	/// <summary>Per-site Voronoi cells: each cell is an ordered list of circumcenter (triangle) indices.</summary>
+	public void SetCells(int[][] cells)
+	{
+		_cells = cells;
+		GD.Print("[SpherePreview] SetCells: ", cells?.Length ?? 0, " cells.");
+		if (_circumcenters != null && _circumcenters.Length > 0)
+		{
+			BuildCircumcentersLayer();
+			if (_cells != null && _cells.Length > 0)
+				BuildVoronoiRegionsLayer();
+		}
+	}
+
+	/// <summary>GDScript-callable; accepts Array of Array (each inner Array is PackedInt32Array of circumcenter indices).</summary>
+	public void set_cells(Variant cells)
+	{
+		var arr = cells.As<Godot.Collections.Array>();
+		if (arr == null || arr.Count == 0)
+		{
+			GD.PushWarning("[SpherePreview] set_cells: no cells array.");
+			return;
+		}
+		var cellList = new int[arr.Count][];
+		for (int i = 0; i < arr.Count; i++)
+		{
+			var inner = arr[i].As<Godot.Collections.Array>();
+			if (inner != null && inner.Count > 0)
+			{
+				cellList[i] = new int[inner.Count];
+				for (int j = 0; j < inner.Count; j++)
+					cellList[i][j] = (int)inner[j].As<long>();
+			}
+			else
+			{
+				var packed = arr[i].As<int[]>();
+				if (packed != null && packed.Length > 0)
+					cellList[i] = packed;
+				else
+					cellList[i] = Array.Empty<int>();
+			}
+		}
+		SetCells(cellList);
 	}
 
 	public override void _Process(double delta)
@@ -325,6 +405,91 @@ public partial class SpherePreview : Node3D
 	{
 		if (a > b) (a, b) = (b, a);
 		set.Add((a, b));
+	}
+
+	/// <summary>One small dot at each triangle circumcenter (centre of each Voronoi region), matching reference style.</summary>
+	private void BuildCircumcentersLayer()
+	{
+		if (_circumcenters == null || _circumcenters.Length == 0) return;
+		var existing = GetNodeOrNull<Node3D>("Circumcenters");
+		if (existing != null)
+			existing.QueueFree();
+
+		// Small dot radius so they read as centres of each region (smaller than site points)
+		const float CircumcenterDotRadius = 0.08f;
+		float pointScale = CircumcenterDotRadius * 2.0f;
+		var basis = new Basis(new Vector3(pointScale, 0, 0), new Vector3(0, pointScale, 0), new Vector3(0, 0, pointScale));
+
+		var multiMesh = new MultiMesh
+		{
+			TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
+			Mesh = MakePointMesh(),
+			InstanceCount = _circumcenters.Length
+		};
+		for (int i = 0; i < _circumcenters.Length; i++)
+		{
+			Vector3 p = SimToGodot(_circumcenters[i]) * SphereRadius;
+			multiMesh.SetInstanceTransform(i, new Transform3D(basis, p));
+		}
+		var dotColor = new Color(0.05f, 0.05f, 0.08f);  // Near-black, like reference
+		var multiInstance = new MultiMeshInstance3D
+		{
+			Multimesh = multiMesh,
+			MaterialOverride = new StandardMaterial3D { AlbedoColor = dotColor }
+		};
+		var container = new Node3D { Name = "Circumcenters" };
+		container.AddChild(multiInstance);
+		AddChild(container);
+		container.Visible = true;
+		GD.Print("[SpherePreview] Circumcenters layer added: ", _circumcenters.Length, " dots.");
+	}
+
+	/// <summary>Voronoi regions: for each site, polygon formed by connecting circumcenters of triangles touching that site.</summary>
+	private void BuildVoronoiRegionsLayer()
+	{
+		if (_circumcenters == null || _cells == null || _circumcenters.Length == 0 || _cells.Length == 0) return;
+		var existing = GetNodeOrNull<Node3D>("Voronoi");
+		if (existing != null)
+			existing.QueueFree();
+
+		var verts = new Vector3[_circumcenters.Length];
+		for (int i = 0; i < _circumcenters.Length; i++)
+			verts[i] = SimToGodot(_circumcenters[i]) * SphereRadius;
+
+		int maxIdx = verts.Length - 1;
+		int edgeCount = 0;
+		var imm = new ImmediateMesh();
+		imm.SurfaceBegin(Mesh.PrimitiveType.Lines);
+		var mat = new StandardMaterial3D
+		{
+			AlbedoColor = new Color(0.95f, 0.5f, 0.35f),
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded
+		};
+		foreach (var cell in _cells)
+		{
+			if (cell == null || cell.Length < 2) continue;
+			for (int j = 0; j < cell.Length; j++)
+			{
+				int idxA = cell[j];
+				int idxB = cell[(j + 1) % cell.Length];
+				if (idxA < 0 || idxA > maxIdx || idxB < 0 || idxB > maxIdx) continue;
+				imm.SurfaceSetColor(mat.AlbedoColor);
+				imm.SurfaceAddVertex(verts[idxA]);
+				imm.SurfaceAddVertex(verts[idxB]);
+				edgeCount++;
+			}
+		}
+		imm.SurfaceEnd();
+
+		var container = new Node3D { Name = "Voronoi" };
+		container.AddChild(new MeshInstance3D
+		{
+			Mesh = imm,
+			MaterialOverride = mat
+		});
+		AddChild(container);
+		container.Visible = true;
+		GD.Print("[SpherePreview] Voronoi regions layer added: ", edgeCount, " edges (cells=", _cells.Length, ").");
 	}
 
 	private void ClearWorldTerrain()
