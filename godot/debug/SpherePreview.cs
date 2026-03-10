@@ -31,6 +31,11 @@ public partial class SpherePreview : Node3D
 	private int[] _plateRegions;
 	private float[] _plateElevation;
 	private float[] _plateMoisture;
+	private Vector3[] _planetTerrainMeshVertices;
+	private Vector3[] _planetTerrainMeshNormals;
+	private int[] _planetTerrainMeshIndices;
+	private float[] _planetTerrainMeshRiverStrength;
+	private bool _showPlanetTerrainMeshOnly;
 
 	public override void _Ready()
 	{
@@ -337,6 +342,184 @@ public partial class SpherePreview : Node3D
 			return;
 		}
 		GD.PushWarning("[SpherePreview] set_plate_moisture: could not convert to float array.");
+	}
+
+	/// <summary>Set the planet terrain mesh (quad + river/ridge). Vertices and normals in sim Z-up; we convert to Y-up and scale. Used for world streaming.</summary>
+	public void SetPlanetTerrainMesh(Vector3[] vertices, Vector3[] normals, int[] indices, float[] riverStrength)
+	{
+		_planetTerrainMeshVertices = vertices;
+		_planetTerrainMeshNormals = normals;
+		_planetTerrainMeshIndices = indices;
+		_planetTerrainMeshRiverStrength = riverStrength;
+		BuildPlanetTerrainMeshLayer();
+	}
+
+	/// <summary>GDScript-callable; accepts result arrays from apply_world_gen_form (planet_terrain_mesh_vertices, planet_terrain_mesh_normals, planet_terrain_mesh_indices, planet_terrain_mesh_river_strength).</summary>
+	public void set_planet_terrain_mesh(Variant vertices, Variant normals, Variant indices, Variant riverStrength)
+	{
+		GD.Print("[SpherePreview] set_planet_terrain_mesh called: vertices type=", vertices.VariantType, " normals type=", normals.VariantType, " indices type=", indices.VariantType);
+		Vector3[] vArr = _variant_to_vector3_array(vertices);
+		Vector3[] nArr = _variant_to_vector3_array(normals);
+		int[] iArr = _variant_to_int_array(indices);
+		float[] rArr = _variant_to_float_array(riverStrength);
+		int vCount = vArr?.Length ?? 0;
+		int iCount = iArr?.Length ?? 0;
+		GD.Print("[SpherePreview] set_planet_terrain_mesh converted: vertices=", vCount, " indices=", iCount);
+		if (vArr != null && vArr.Length > 0 && iArr != null && iArr.Length >= 3)
+		{
+			SetPlanetTerrainMesh(vArr, nArr, iArr, rArr);
+			GD.Print("[SpherePreview] set_planet_terrain_mesh: SetPlanetTerrainMesh and BuildPlanetTerrainMeshLayer done.");
+		}
+		else
+			GD.PushWarning("[SpherePreview] set_planet_terrain_mesh: invalid or empty vertices/indices (vertices=", vCount, " indices=", iCount, ").");
+	}
+
+	/// <summary>When true, only updates overlay so Planet terrain mesh is checked and others unchecked; layer nodes are hidden/shown by visibility, not destroyed.</summary>
+	public void SetShowPlanetTerrainMeshOnly(bool only)
+	{
+		_showPlanetTerrainMeshOnly = only;
+		var overlay = GetNodeOrNull<SpherePreviewOverlay>("OverlayLayer/SpherePreviewOverlay");
+		if (overlay != null)
+			overlay.SetShowPlanetTerrainMeshOnlyMode(only);
+	}
+
+	/// <summary>GDScript-callable.</summary>
+	public void set_show_planet_terrain_mesh_only(bool only)
+	{
+		SetShowPlanetTerrainMeshOnly(only);
+	}
+
+	private static Vector3[] _variant_to_vector3_array(Variant v)
+	{
+		var arr = v.As<Vector3[]>();
+		if (arr != null && arr.Length > 0) return arr;
+		var list = v.As<Godot.Collections.Array>();
+		if (list != null && list.Count > 0)
+		{
+			var outArr = new Vector3[list.Count];
+			for (int i = 0; i < list.Count; i++)
+				outArr[i] = (Vector3)list[i];
+			return outArr;
+		}
+		return null;
+	}
+
+	private static int[] _variant_to_int_array(Variant v)
+	{
+		var arr = v.As<int[]>();
+		if (arr != null && arr.Length > 0) return arr;
+		var list = v.As<Godot.Collections.Array>();
+		if (list != null && list.Count > 0)
+		{
+			var outArr = new int[list.Count];
+			for (int i = 0; i < list.Count; i++)
+				outArr[i] = (int)list[i].As<long>();
+			return outArr;
+		}
+		return null;
+	}
+
+	private static float[] _variant_to_float_array(Variant v)
+	{
+		if (v.VariantType == Variant.Type.Nil) return null;
+		var arr = v.As<float[]>();
+		if (arr != null && arr.Length > 0) return arr;
+		var list = v.As<Godot.Collections.Array>();
+		if (list != null && list.Count > 0)
+		{
+			var outArr = new float[list.Count];
+			for (int i = 0; i < list.Count; i++)
+				outArr[i] = (float)list[i].As<double>();
+			return outArr;
+		}
+		return null;
+	}
+
+	private void BuildPlanetTerrainMeshLayer()
+	{
+		int nV = _planetTerrainMeshVertices?.Length ?? 0;
+		int nI = _planetTerrainMeshIndices?.Length ?? 0;
+		GD.Print("[SpherePreview] BuildPlanetTerrainMeshLayer: vertices=", nV, " indices=", nI);
+		if (_planetTerrainMeshVertices == null || _planetTerrainMeshIndices == null || _planetTerrainMeshVertices.Length == 0 || _planetTerrainMeshIndices.Length < 3)
+		{
+			GD.Print("[SpherePreview] BuildPlanetTerrainMeshLayer: skip (insufficient data)");
+			return;
+		}
+		var existing = GetNodeOrNull<MeshInstance3D>("PlanetTerrainMesh");
+		if (existing != null)
+		{
+			GD.Print("[SpherePreview] BuildPlanetTerrainMeshLayer: removing existing PlanetTerrainMesh node");
+			existing.QueueFree();
+		}
+
+		// Slightly outside globe so the planet terrain mesh reads as a solid 3D ground surface (avoids z-fight).
+		const float PlanetTerrainMeshRadiusScale = 1.002f;
+		nV = _planetTerrainMeshVertices.Length;
+		var verts = new Vector3[nV];
+		var normals = new Vector3[nV];
+		for (int i = 0; i < nV; i++)
+		{
+			verts[i] = SimToGodot(_planetTerrainMeshVertices[i]) * (SphereRadius * PlanetTerrainMeshRadiusScale);
+			normals[i] = _planetTerrainMeshNormals != null && i < _planetTerrainMeshNormals.Length
+				? SimToGodot(_planetTerrainMeshNormals[i]).Normalized()
+				: verts[i].Normalized();
+		}
+		int numTris = _planetTerrainMeshIndices.Length / 3;
+		var colors = new Color[nV];
+		float maxRiver = 0.001f;
+		if (_planetTerrainMeshRiverStrength != null && _planetTerrainMeshRiverStrength.Length >= numTris)
+		{
+			for (int t = 0; t < numTris; t++)
+				if (_planetTerrainMeshRiverStrength[t] > maxRiver) maxRiver = _planetTerrainMeshRiverStrength[t];
+		}
+		for (int i = 0; i < nV; i++)
+			colors[i] = new Color(0.4f, 0.5f, 0.45f); // default terrain tint
+		if (_planetTerrainMeshRiverStrength != null && _planetTerrainMeshRiverStrength.Length >= numTris && maxRiver > 0)
+		{
+			for (int t = 0; t < numTris; t++)
+			{
+				float r = _planetTerrainMeshRiverStrength[t] / maxRiver;
+				int i0 = _planetTerrainMeshIndices[t * 3 + 0];
+				int i1 = _planetTerrainMeshIndices[t * 3 + 1];
+				int i2 = _planetTerrainMeshIndices[t * 3 + 2];
+				var valley = new Color(0.2f + 0.4f * r, 0.35f, 0.6f);
+				if (i0 < nV) colors[i0] = colors[i0].Lerp(valley, 0.5f);
+				if (i1 < nV) colors[i1] = colors[i1].Lerp(valley, 0.5f);
+				if (i2 < nV) colors[i2] = colors[i2].Lerp(valley, 0.5f);
+			}
+		}
+		var arrays = new Godot.Collections.Array();
+		arrays.Resize((int)Mesh.ArrayType.Max);
+		arrays[(int)Mesh.ArrayType.Vertex] = verts;
+		arrays[(int)Mesh.ArrayType.Normal] = normals;
+		arrays[(int)Mesh.ArrayType.Color] = colors;
+		arrays[(int)Mesh.ArrayType.Index] = _planetTerrainMeshIndices;
+		var arrMesh = new ArrayMesh();
+		arrMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+		var mat = new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.PerPixel,
+			VertexColorUseAsAlbedo = true,
+			CullMode = BaseMaterial3D.CullModeEnum.Disabled
+		};
+		var meshInstance = new MeshInstance3D
+		{
+			Name = "PlanetTerrainMesh",
+			Mesh = arrMesh,
+			MaterialOverride = mat,
+			Visible = true
+		};
+		AddChild(meshInstance);
+		meshInstance.Visible = true;
+		GD.Print("[SpherePreview] Planet terrain mesh layer added: ", nV, " vertices, ", numTris, " triangles. Node name=", meshInstance.Name, " parent=", meshInstance.GetParent()?.Name ?? "null", " Visible=", meshInstance.Visible);
+		var overlay = GetNodeOrNull<SpherePreviewOverlay>("OverlayLayer/SpherePreviewOverlay");
+		if (overlay != null)
+		{
+			overlay.SyncPlanetTerrainMeshCheckbox();
+			GD.Print("[SpherePreview] Planet terrain mesh: overlay SyncPlanetTerrainMeshCheckbox called.");
+		}
+		else
+			GD.Print("[SpherePreview] Planet terrain mesh: overlay not found (OverlayLayer/SpherePreviewOverlay).");
 	}
 
 	public override void _Process(double delta)

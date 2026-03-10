@@ -7,14 +7,16 @@
 
 namespace growth {
 
-/// Single entry point for building a full planet: Voronoi sphere, tectonics, elevation, moisture; later biomes, rivers.
+struct PlanetTerrainMesh;
+
+/// Single entry point for building a full planet: Voronoi sphere, tectonics, elevation, moisture, rivers, optional planet terrain mesh.
 /// Uses VoronoiSphereGenerator for the reusable sphere mesh; all planet-specific layers live here.
 class PlanetGlobeGenerator {
 public:
-	/// Run the full pipeline: (1) Voronoi sphere, (2) tectonic plates, (3) plate properties, (4) elevation, (5) moisture.
-	/// Fills out.voronoi, out.plates, out.elevation, out.moisture. num_sites = Voronoi site count; jitter_percent 0–100; num_plate_regions = plate count (e.g. 10–50).
-	/// temperature_01 and precipitation_01 are 0–1 climate multipliers (e.g. form sliders 0–200 / 200); higher temperature slightly lowers moisture.
-	void run(const WorldSeed &world_seed, const PlanetGenome &planet_genome, size_t num_sites, double jitter_percent, size_t num_plate_regions, float temperature_01, float precipitation_01, PlanetGlobe &out) const;
+	/// Run the full pipeline: (1) Voronoi sphere, (2) half-edge mesh, (3) tectonic plates, (4) plate properties,
+	/// (5) elevation, (6) moisture, (7) triangle values, (8) river downflow and flow.
+	/// If use_planet_terrain_mesh is true and out_planet_terrain_mesh is not null, generates the planet terrain mesh (quad, river/ridge) into *out_planet_terrain_mesh.
+	void run(const WorldSeed &world_seed, const PlanetGenome &planet_genome, size_t num_sites, double jitter_percent, size_t num_plate_regions, float temperature_01, float precipitation_01, PlanetGlobe &out, bool use_planet_terrain_mesh = false, PlanetTerrainMesh *out_planet_terrain_mesh = nullptr) const;
 };
 
 } // namespace growth

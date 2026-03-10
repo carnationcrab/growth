@@ -117,3 +117,10 @@ layout_mode = 2
 layout_mode = 2
 button_pressed = true
 text = "Plate labels (E / M)"
+
+[node name="PlanetTerrainMeshRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+layout_mode = 2
+
+[node name="PlanetTerrainMeshCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/PlanetTerrainMeshRow"]
+layout_mode = 2
+text = "Planet terrain mesh"

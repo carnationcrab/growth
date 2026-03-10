@@ -212,6 +212,7 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 		if (t[2] < out.sites.size()) site_to_tris[t[2]].push_back(i);
 	}
 	out.cells.resize(out.sites.size());
+	const size_t max_walk = out.triangles.size() + 1u; // guard against non-manifold / degenerate meshes
 	for (size_t s = 0; s < out.sites.size(); ++s) {
 		std::vector<size_t> &cell = out.cells[s];
 		if (site_to_tris[s].empty()) continue;
@@ -225,7 +226,9 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 			else if (t[1] == s) { leave_v = t[2]; }
 			else { leave_v = t[0]; }
 		}
+		size_t steps = 0;
 		do {
+			if (++steps > max_walk) break; // avoid infinite loop on degenerate edge (e.g. 3+ tris)
 			cell.push_back(cur_tri);
 			Edge e(std::min(s, leave_v), std::max(s, leave_v));
 			const auto &neighbours = edge_to_tris[e];

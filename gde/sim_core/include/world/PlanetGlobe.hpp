@@ -3,6 +3,7 @@
 #include "PlateProperties.hpp"
 #include "RegionElevation.hpp"
 #include "RegionMoisture.hpp"
+#include "RiverFlow.hpp"
 #include "SphereHalfEdgeMesh.hpp"
 #include "TectonicPlates.hpp"
 #include "TriangleValues.hpp"
@@ -10,7 +11,7 @@
 
 namespace growth {
 
-/// Full globe result: topology, half-edge mesh, plates, plate properties, per-region and per-triangle values.
+/// Full globe result: topology, half-edge mesh, plates, plate properties, per-region and per-triangle values, rivers.
 /// Produced by PlanetGlobeGenerator.
 struct PlanetGlobe {
 	VoronoiSphere voronoi;
@@ -20,6 +21,7 @@ struct PlanetGlobe {
 	RegionElevation region_elevation;
 	RegionMoisture region_moisture;
 	TriangleValues triangle_values;
+	RiverFlow river_flow;
 };
 
 } // namespace growth

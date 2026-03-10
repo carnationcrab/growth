@@ -1,7 +1,9 @@
 #include "world/PlanetGlobeGenerator.hpp"
 #include "world/ElevationAssigner.hpp"
+#include "world/PlanetTerrainMesh.hpp"
 #include "world/MoistureAssigner.hpp"
 #include "world/PlatePropertiesAssigner.hpp"
+#include "world/RiverFlow.hpp"
 #include "world/SphereHalfEdgeMesh.hpp"
 #include "world/TectonicPlateAssigner.hpp"
 #include "world/TriangleValues.hpp"
@@ -9,7 +11,7 @@
 
 namespace growth {
 
-void PlanetGlobeGenerator::run(const WorldSeed &world_seed, const PlanetGenome &planet_genome, size_t num_sites, double jitter_percent, size_t num_plate_regions, float temperature_01, float precipitation_01, PlanetGlobe &out) const {
+void PlanetGlobeGenerator::run(const WorldSeed &world_seed, const PlanetGenome &planet_genome, size_t num_sites, double jitter_percent, size_t num_plate_regions, float temperature_01, float precipitation_01, PlanetGlobe &out, bool use_planet_terrain_mesh, PlanetTerrainMesh *out_planet_terrain_mesh) const {
 	(void)planet_genome;
 
 	VoronoiSphereGenerator voronoi_gen;
@@ -30,6 +32,12 @@ void PlanetGlobeGenerator::run(const WorldSeed &world_seed, const PlanetGenome &
 	moisture_assigner.assign(out.voronoi, out.plates, out.region_elevation, world_seed, temperature_01, precipitation_01, out.region_moisture);
 
 	assign_triangle_values_from_regions(out.voronoi, out.region_elevation, out.region_moisture, out.triangle_values);
+
+	assign_downflow(out.mesh, out.triangle_values.triangle_elevation, out.river_flow);
+	assign_flow(out.mesh, out.river_flow, out.triangle_values.triangle_elevation, out.river_flow);
+
+	if (use_planet_terrain_mesh && out_planet_terrain_mesh)
+		generate_planet_terrain_mesh_quad(out, *out_planet_terrain_mesh);
 }
 
 } // namespace growth

@@ -31,6 +31,10 @@ func run_generation(form_dict: Dictionary) -> void:
 
 func _do_run_generation() -> void:
 	_result = SimAPI.apply_world_gen_form(_form_dict)
+	var u = _result.get("use_planet_terrain_mesh", null)
+	var v = _result.get("planet_terrain_mesh_vertices", null)
+	var vs = v.size() if v != null else 0
+	print("[WorldGenLoadScreen] right after apply_world_gen_form: use_planet_terrain_mesh=", u, " verts.size()=", vs)
 	_on_generation_done(_result)
 
 
@@ -54,5 +58,8 @@ func _on_generation_done(result: Dictionary) -> void:
 
 
 func _on_continue_pressed() -> void:
+	var u = _result.get("use_planet_terrain_mesh", null)
+	var v = _result.get("planet_terrain_mesh_vertices", null)
+	print("[WorldGenLoadScreen] about to emit: use_planet_terrain_mesh=", u, " verts.size()=", v.size() if v != null else 0)
 	generation_finished.emit(_result)
 	queue_free()

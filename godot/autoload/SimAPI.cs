@@ -145,6 +145,13 @@ public partial class SimAPI : Node
 				ForwardFloatArray(dict, result, "region_moisture");
 				ForwardFloatArray(dict, result, "triangle_elevation");
 				ForwardFloatArray(dict, result, "triangle_moisture");
+				// Planet terrain mesh (for world streaming / preview)
+				if (dict.ContainsKey("use_planet_terrain_mesh"))
+					result["use_planet_terrain_mesh"] = dict["use_planet_terrain_mesh"];
+				ForwardVector3Array(dict, result, "planet_terrain_mesh_vertices");
+				ForwardVector3Array(dict, result, "planet_terrain_mesh_normals");
+				ForwardIntArray(dict, result, "planet_terrain_mesh_indices");
+				ForwardFloatArray(dict, result, "planet_terrain_mesh_river_strength");
 				ForwardIntArray(dict, result, "mesh_s_begin_r");
 				ForwardIntArray(dict, result, "mesh_s_end_r");
 				ForwardIntArray(dict, result, "mesh_s_inner_t");
@@ -183,6 +190,20 @@ public partial class SimAPI : Node
 		{
 			var outArr = new Godot.Collections.Array();
 			foreach (var x in arr) outArr.Add(x);
+			result[key] = outArr;
+		}
+		else
+			result[key] = dict[key];
+	}
+
+	private static void ForwardVector3Array(Godot.Collections.Dictionary dict, Godot.Collections.Dictionary result, string key)
+	{
+		if (!dict.ContainsKey(key)) return;
+		var arr = dict[key].As<Vector3[]>();
+		if (arr != null && arr.Length > 0)
+		{
+			var outArr = new Godot.Collections.Array();
+			foreach (var vec in arr) outArr.Add(vec);
 			result[key] = outArr;
 		}
 		else

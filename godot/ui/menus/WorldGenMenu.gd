@@ -79,6 +79,7 @@ func _on_generate_pressed() -> void:
 	var points_slider := vbox.get_node_or_null("PointsBlock/PointsSlider") as HSlider
 	var jitter_slider := vbox.get_node_or_null("JitterBlock/JitterSlider") as HSlider
 	var plates_slider := vbox.get_node_or_null("PlatesBlock/PlatesSlider") as HSlider
+	var planet_terrain_mesh_check := vbox.get_node_or_null("PlanetTerrainMeshRow/PlanetTerrainMeshCheckBox") as CheckBox
 
 	var seed_text: String = seed_edit.text if seed_edit else ""
 	var world_size_idx: int = size_opt.selected if size_opt else 1
@@ -87,6 +88,7 @@ func _on_generate_pressed() -> void:
 	var num_points: int = int(points_slider.value) if points_slider else 256
 	var jitter: float = jitter_slider.value if jitter_slider else 0.0
 	var num_plates: int = int(plates_slider.value) if plates_slider else 25
+	var use_planet_terrain_mesh: bool = planet_terrain_mesh_check.button_pressed if planet_terrain_mesh_check else false
 
 	var form_dict: Dictionary = {
 		"seed": seed_text,
@@ -96,8 +98,10 @@ func _on_generate_pressed() -> void:
 		"planet_preset": "Earthlike",
 		"voronoi_sites": num_points,
 		"jitter": jitter,
-		"num_plate_regions": num_plates
+		"num_plate_regions": num_plates,
+		"use_planet_terrain_mesh": use_planet_terrain_mesh
 	}
+	print("[WorldGen] Form submitted: use_planet_terrain_mesh=", use_planet_terrain_mesh, " (checkbox found=", planet_terrain_mesh_check != null, ")")
 
 	var load_screen_scene := load("res://godot/ui/menus/worldGenLoadScreen.tscn") as PackedScene
 	if not load_screen_scene:
@@ -156,6 +160,22 @@ func _apply_world_gen_result(result: Dictionary) -> void:
 	var plate_moisture = result.get("plate_moisture", null)
 	if plate_moisture != null and plate_moisture.size() > 0 and preview:
 		preview.set_plate_moisture(plate_moisture)
+	var ptm_verts = result.get("planet_terrain_mesh_vertices", null)
+	var ptm_normals = result.get("planet_terrain_mesh_normals", null)
+	var ptm_indices = result.get("planet_terrain_mesh_indices", null)
+	var ptm_river = result.get("planet_terrain_mesh_river_strength", null)
+	var use_planet_terrain_mesh: bool = result.get("use_planet_terrain_mesh", false)
+	print("[WorldGen] Planet terrain mesh: use_planet_terrain_mesh=", use_planet_terrain_mesh, " verts=", ptm_verts.size() if ptm_verts != null else 0, " indices=", ptm_indices.size() if ptm_indices != null else 0)
+	if preview and ptm_verts != null and ptm_indices != null and ptm_verts.size() > 0 and ptm_indices.size() > 0:
+		# Convert to Array so C# receives a type it can iterate (avoids Packed* type names in C#).
+		print("[WorldGen] Planet terrain mesh: calling preview.set_planet_terrain_mesh (verts=%d indices=%d)" % [ptm_verts.size(), ptm_indices.size()])
+		preview.set_planet_terrain_mesh(Array(ptm_verts), Array(ptm_normals) if ptm_normals else [], Array(ptm_indices), Array(ptm_river) if ptm_river else [])
+	elif preview and use_planet_terrain_mesh:
+		print("[WorldGen] Planet terrain mesh was requested but result had no mesh data (vertices or indices missing/empty).")
+	if preview and use_planet_terrain_mesh:
+		# Only effect: in the preview overlay, Planet terrain mesh is checked and all other layer toggles are unchecked.
+		print("[WorldGen] Planet terrain mesh: calling set_show_planet_terrain_mesh_only(true)")
+		preview.set_show_planet_terrain_mesh_only(true)
 
 
 func _apply_ui_assets() -> void:

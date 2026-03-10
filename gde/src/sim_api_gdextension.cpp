@@ -8,6 +8,15 @@
 #include "gen/Planet.hpp"
 #include "world/PlanetGlobeGenerator.hpp"
 #include "world/PlanetGlobe.hpp"
+#include "world/VoronoiSphereGenerator.hpp"
+#include "world/SphereHalfEdgeMesh.hpp"
+#include "world/TectonicPlateAssigner.hpp"
+#include "world/PlatePropertiesAssigner.hpp"
+#include "world/ElevationAssigner.hpp"
+#include "world/MoistureAssigner.hpp"
+#include "world/TriangleValues.hpp"
+#include "world/RiverFlow.hpp"
+#include "world/PlanetTerrainMesh.hpp"
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_float32_array.hpp>
@@ -106,12 +115,55 @@ Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
 	if (precipitation_01 < 0.0f) precipitation_01 = 0.0f;
 	if (precipitation_01 > 1.0f) precipitation_01 = 1.0f;
 	growth::PlanetGlobe globe;
-	growth::PlanetGlobeGenerator globe_gen;
-	globe_gen.run(world_seed, planet_genome, parsed.voronoi_sites, parsed.jitter, parsed.num_plate_regions, temperature_01, precipitation_01, globe);
-	log_line(log_lines, "[PlanetGlobe] Voronoi done. Assigning tectonic plates...");
-	log_line(log_lines, "[PlanetGlobe] Plates done. Computing elevation...");
-	log_line(log_lines, "[PlanetGlobe] Elevation done. Computing moisture...");
-	log_line(log_lines, "[PlanetGlobe] Moisture done. Marshalling output...");
+	growth::PlanetTerrainMesh planet_terrain_mesh;
+
+	// Run pipeline step-by-step so logs show which step runs (and which one freezes).
+	{
+		growth::VoronoiSphereGenerator voronoi_gen;
+		globe.voronoi = voronoi_gen.generate(world_seed, parsed.voronoi_sites, static_cast<float>(parsed.jitter));
+		log_line(log_lines, "[PlanetGlobe] Voronoi done.");
+	}
+	{
+		growth::build_sphere_half_edge_mesh(globe.voronoi, globe.mesh);
+		log_line(log_lines, "[PlanetGlobe] Half-edge mesh done.");
+	}
+	{
+		growth::TectonicPlateAssigner plate_assigner;
+		plate_assigner.assign(globe.voronoi, world_seed, parsed.num_plate_regions, globe.plates);
+		log_line(log_lines, "[PlanetGlobe] Plates done.");
+	}
+	{
+		growth::PlatePropertiesAssigner props_assigner;
+		props_assigner.assign(globe.voronoi, globe.plates, world_seed, globe.plate_properties);
+		log_line(log_lines, "[PlanetGlobe] Plate properties done.");
+	}
+	{
+		growth::ElevationAssigner elevation_assigner;
+		elevation_assigner.assign(globe.voronoi, globe.plates, globe.plate_properties, world_seed, globe.region_elevation);
+		log_line(log_lines, "[PlanetGlobe] Elevation done.");
+	}
+	{
+		growth::MoistureAssigner moisture_assigner;
+		moisture_assigner.assign(globe.voronoi, globe.plates, globe.region_elevation, world_seed, temperature_01, precipitation_01, globe.region_moisture);
+		log_line(log_lines, "[PlanetGlobe] Moisture done.");
+	}
+	{
+		growth::assign_triangle_values_from_regions(globe.voronoi, globe.region_elevation, globe.region_moisture, globe.triangle_values);
+		growth::assign_downflow(globe.mesh, globe.triangle_values.triangle_elevation, globe.river_flow);
+		growth::assign_flow(globe.mesh, globe.river_flow, globe.triangle_values.triangle_elevation, globe.river_flow);
+		log_line(log_lines, "[PlanetGlobe] Rivers done.");
+	}
+	if (parsed.use_planet_terrain_mesh) {
+		log_line(log_lines, "[PlanetGlobe] Generating planet terrain mesh (quad)...");
+		growth::generate_planet_terrain_mesh_quad(globe, planet_terrain_mesh);
+		{
+			std::ostringstream os;
+			os << "[PlanetGlobe] Planet terrain mesh computed: vertices=" << planet_terrain_mesh.vertices.size()
+			   << " indices=" << planet_terrain_mesh.indices.size() << " triangles=" << (planet_terrain_mesh.indices.size() / 3);
+			log_line(log_lines, os.str());
+		}
+	}
+	log_line(log_lines, "[PlanetGlobe] Marshalling output...");
 
 	const growth::VoronoiSphere &voronoi_sphere = globe.voronoi;
 	// Sites in sim coords (Z-up); SpherePreview converts to Godot Y-up for display.
@@ -260,6 +312,62 @@ Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
 	out["mesh_s_next_s"] = s_next_s_arr;
 	out["mesh_s_twin_s"] = s_twin_s_arr;
 
+	// River flow (for debugging / overlays)
+	const growth::RiverFlow &river = globe.river_flow;
+	PackedInt32Array t_downflow_s_arr;
+	t_downflow_s_arr.resize(static_cast<int64_t>(river.t_downflow_s.size()));
+	for (size_t i = 0; i < river.t_downflow_s.size(); ++i)
+		t_downflow_s_arr.set(static_cast<int64_t>(i), river.t_downflow_s[i] == growth::RiverFlow::k_invalid ? -1 : static_cast<int32_t>(river.t_downflow_s[i]));
+	out["river_t_downflow_s"] = t_downflow_s_arr;
+	PackedFloat32Array s_flow_arr;
+	s_flow_arr.resize(static_cast<int64_t>(river.s_flow.size()));
+	for (size_t i = 0; i < river.s_flow.size(); ++i)
+		s_flow_arr.set(static_cast<int64_t>(i), river.s_flow[i]);
+	out["river_s_flow"] = s_flow_arr;
+
+	// Planet terrain mesh (when use_planet_terrain_mesh was true); used for world streaming.
+	if (parsed.use_planet_terrain_mesh && !planet_terrain_mesh.vertices.empty()) {
+		{
+			std::ostringstream os;
+			os << "[WorldGen] Marshalling planet terrain mesh to result: vertices=" << planet_terrain_mesh.vertices.size()
+			   << " indices=" << planet_terrain_mesh.indices.size();
+			log_line(log_lines, os.str());
+		}
+		PackedVector3Array ptm_verts, ptm_normals;
+		ptm_verts.resize(static_cast<int64_t>(planet_terrain_mesh.vertices.size()));
+		ptm_normals.resize(static_cast<int64_t>(planet_terrain_mesh.normals.size()));
+		for (size_t i = 0; i < planet_terrain_mesh.vertices.size(); ++i)
+			ptm_verts.set(static_cast<int64_t>(i), Vector3(planet_terrain_mesh.vertices[i].x, planet_terrain_mesh.vertices[i].y, planet_terrain_mesh.vertices[i].z));
+		for (size_t i = 0; i < planet_terrain_mesh.normals.size(); ++i)
+			ptm_normals.set(static_cast<int64_t>(i), Vector3(planet_terrain_mesh.normals[i].x, planet_terrain_mesh.normals[i].y, planet_terrain_mesh.normals[i].z));
+		PackedInt32Array ptm_indices;
+		ptm_indices.resize(static_cast<int64_t>(planet_terrain_mesh.indices.size()));
+		for (size_t i = 0; i < planet_terrain_mesh.indices.size(); ++i)
+			ptm_indices.set(static_cast<int64_t>(i), static_cast<int32_t>(planet_terrain_mesh.indices[i]));
+		PackedFloat32Array ptm_river;
+		ptm_river.resize(static_cast<int64_t>(planet_terrain_mesh.river_strength.size()));
+		for (size_t i = 0; i < planet_terrain_mesh.river_strength.size(); ++i)
+			ptm_river.set(static_cast<int64_t>(i), planet_terrain_mesh.river_strength[i]);
+		out["planet_terrain_mesh_vertices"] = ptm_verts;
+		out["planet_terrain_mesh_normals"] = ptm_normals;
+		out["planet_terrain_mesh_indices"] = ptm_indices;
+		out["planet_terrain_mesh_river_strength"] = ptm_river;
+		log_line(log_lines, "[WorldGen] Planet terrain mesh keys added to result dict.");
+	} else if (parsed.use_planet_terrain_mesh) {
+		log_line(log_lines, "[WorldGen] Planet terrain mesh was requested but mesh is empty; not adding to result.");
+	}
+	out["use_planet_terrain_mesh"] = parsed.use_planet_terrain_mesh;
+
+	{
+		std::ostringstream os;
+		os << "[WorldGen] C++ return: use_planet_terrain_mesh=" << (parsed.use_planet_terrain_mesh ? "true" : "false");
+		if (out.has("planet_terrain_mesh_vertices")) {
+			PackedVector3Array pv = out["planet_terrain_mesh_vertices"];
+			os << " planet_terrain_mesh_vertices.size()=" << pv.size();
+		} else
+			os << " (no planet_terrain_mesh_vertices key)";
+		log_line(log_lines, os.str());
+	}
 	log_line(log_lines, "[WorldGen] Done.");
 	Array log_arr;
 	for (const auto &s : log_lines)

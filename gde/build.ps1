@@ -24,8 +24,25 @@ function Build-Target {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     $dll = "bin\growth_sim.dll"
     if (Test-Path $dll) {
-        Copy-Item $dll "bin\$name" -Force
-        Write-Host "Copied to bin\$name"
+        $dest = "bin\$name"
+        $copied = $false
+        foreach ($attempt in 1..3) {
+            try {
+                Copy-Item $dll $dest -Force -ErrorAction Stop
+                $copied = $true
+                break
+            } catch [System.IO.IOException] {
+                if ($attempt -lt 3) {
+                    Write-Host "DLL in use, retrying in 2s... (close Godot to avoid this)"
+                    Start-Sleep -Seconds 2
+                } else {
+                    Write-Host ""
+                    Write-Host "Copy failed: $name is locked. Close the Godot editor and any running game, then re-run .\build.ps1" -ForegroundColor Yellow
+                    exit 1
+                }
+            }
+        }
+        if ($copied) { Write-Host "Copied to bin\$name" }
     }
 }
 

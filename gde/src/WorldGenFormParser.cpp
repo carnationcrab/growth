@@ -18,6 +18,7 @@ void parse_world_gen_form(const Dictionary &form_dict, growth::ParsedWorldGenFor
 	out.voronoi_sites = 256;
 	out.jitter = 0.0;
 	out.num_plate_regions = 25;
+	out.use_planet_terrain_mesh = false;
 	if (form_dict.size() == 0) return;
 
 	Array keys = form_dict.keys();
@@ -61,6 +62,10 @@ void parse_world_gen_form(const Dictionary &form_dict, growth::ParsedWorldGenFor
 			if (n < 10) n = 10;
 			if (n > 50) n = 50;
 			out.num_plate_regions = static_cast<size_t>(n);
+			continue;
+		}
+		if (key == "use_planet_terrain_mesh" || key == "planet_terrain_mesh" || key == "use_final_mesh" || key == "final_mesh") {
+			out.use_planet_terrain_mesh = v.operator bool();
 			continue;
 		}
 

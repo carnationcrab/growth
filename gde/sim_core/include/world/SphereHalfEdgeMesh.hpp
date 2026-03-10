@@ -33,9 +33,9 @@ struct SphereHalfEdgeMesh {
 	/// Twin half-edge (same edge, opposite direction). s_twin_s(s).
 	std::vector<size_t> s_twin_s;
 
-	size_t num_regions() const { return r_xyz.size(); }
+	size_t num_regions()   const { return r_xyz.size(); }
 	size_t num_triangles() const { return t_xyz.size(); }
-	size_t num_sides() const { return s_begin_r.size(); }
+	size_t num_sides()     const { return s_begin_r.size(); }
 };
 
 /// Build a half-edge mesh from a Voronoi sphere. Fills mesh.r_xyz, mesh.t_xyz and all s_* arrays.
