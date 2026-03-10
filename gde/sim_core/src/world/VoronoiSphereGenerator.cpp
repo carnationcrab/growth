@@ -18,10 +18,16 @@ namespace growth {
 namespace {
 
 	// Stereographic projection from north pole: (x,y,z) on unit sphere -> (u,v) in plane.
-	// (u,v) = (x/(1-z), y/(1-z)). North hemisphere -> inside unit circle; south -> outside.
+	// (u,v) = (x/(1-z), y/(1-z)). Near pole we use tangent-plane coords so points stay distinct (avoids degenerate Delaunay).
 	void stereographic(const Vec3 &p, float &u, float &v) {
 		const float denom = 1.0f - p.z;
-		if (denom <= 1e-6f) { u = 0.0f; v = 0.0f; return; } // near north pole: clamp to origin
+		if (denom <= 1e-6f) {
+			// Near north pole: project onto tangent plane with scale so points don't collapse to (0,0).
+			const float scale = 1e3f;
+			u = p.x * scale;
+			v = p.y * scale;
+			return;
+		}
 		u = p.x / denom;
 		v = p.y / denom;
 	}
@@ -196,17 +202,20 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 		}
 	}
 
-	// 7) Per-site Voronoi cells: ordered circumcenter indices around each site
+	// 7) Per-site Voronoi cells: ordered circumcenter indices around each site.
+	// Build site -> triangle indices once (O(triangles)) so we don't scan all triangles per site.
+	std::vector<std::vector<size_t>> site_to_tris(out.sites.size());
+	for (size_t i = 0; i < out.triangles.size(); ++i) {
+		const auto &t = out.triangles[i];
+		if (t[0] < out.sites.size()) site_to_tris[t[0]].push_back(i);
+		if (t[1] < out.sites.size()) site_to_tris[t[1]].push_back(i);
+		if (t[2] < out.sites.size()) site_to_tris[t[2]].push_back(i);
+	}
 	out.cells.resize(out.sites.size());
 	for (size_t s = 0; s < out.sites.size(); ++s) {
 		std::vector<size_t> &cell = out.cells[s];
-		// Find one triangle containing s to start the ring
-		size_t start_tri = static_cast<size_t>(-1);
-		for (size_t i = 0; i < out.triangles.size(); ++i) {
-			const auto &t = out.triangles[i];
-			if (t[0] == s || t[1] == s || t[2] == s) { start_tri = i; break; }
-		}
-		if (start_tri == static_cast<size_t>(-1)) continue;
+		if (site_to_tris[s].empty()) continue;
+		const size_t start_tri = site_to_tris[s][0];
 		// Walk triangles around s
 		size_t cur_tri = start_tri;
 		size_t leave_v = static_cast<size_t>(-1); // vertex we go to (other side of edge from s)

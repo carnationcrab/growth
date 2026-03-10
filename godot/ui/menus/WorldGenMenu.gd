@@ -98,69 +98,64 @@ func _on_generate_pressed() -> void:
 		"jitter": jitter,
 		"num_plate_regions": num_plates
 	}
-	var result = SimAPI.apply_world_gen_form(form_dict)
-	print("[WorldGen] result keys: ", result.keys())
+
+	var load_screen_scene := load("res://godot/ui/menus/worldGenLoadScreen.tscn") as PackedScene
+	if not load_screen_scene:
+		push_error("[WorldGen] failed to load WorldGenLoadScreen.tscn")
+		return
+	var load_screen = load_screen_scene.instantiate()
+	var ui_layer := get_parent()
+	if not ui_layer:
+		push_error("[WorldGen] no parent UILayer")
+		return
+	ui_layer.add_child(load_screen)
+	load_screen.generation_finished.connect(_on_load_screen_finished)
+	load_screen.run_generation(form_dict)
+
+
+func _on_load_screen_finished(result: Dictionary) -> void:
+	_apply_world_gen_result(result)
+	queue_free()
+
+
+func _apply_world_gen_result(result: Dictionary) -> void:
 	var sites = result.get("sites", null)
 	var triangles = result.get("triangles", null)
 	var circumcenters = result.get("circumcenters", null)
 	var cells = result.get("cells", null)
-
-	print("[WorldGen] applied form seed=\"", seed_text, "\" world_size=", world_size_idx, " temperature=", temperature, "% precipitation=", precipitation, "%")
-	if sites:
-		print("[WorldGen] sites count: ", sites.size())
-	else:
-		print("[WorldGen] sites is null or missing")
-	if triangles != null:
-		print("[WorldGen] triangles count: ", triangles.size())
-		if triangles.size() == 0:
-			print("[WorldGen] triangles is empty array")
-	else:
-		print("[WorldGen] triangles is null or missing")
-	if circumcenters != null:
-		print("[WorldGen] circumcenters count: ", circumcenters.size())
-	else:
-		print("[WorldGen] circumcenters is null or missing")
-	if cells != null:
-		print("[WorldGen] cells count: ", cells.size())
-	else:
-		print("[WorldGen] cells is null or missing")
-	var plate_regions_pre = result.get("plate_regions", null)
-	if plate_regions_pre != null:
-		print("[WorldGen] plate_regions count: ", plate_regions_pre.size())
-	else:
-		print("[WorldGen] plate_regions is null or missing")
+	var plate_regions = result.get("plate_regions", null)
 
 	var main = get_parent().get_parent() if get_parent() else null
-	if main:
-		# Reuse existing SpherePreview so we don't stack multiple (old one was the phantom).
-		var preview = main.get_node_or_null("SpherePreview")
-		for child in main.get_children():
-			if child.name == "SpherePreview" and child != preview:
-				child.queue_free()
-		if preview == null:
-			var preview_scene = load("res://godot/debug/SpherePreview.tscn") as PackedScene
-			if preview_scene:
-				preview = preview_scene.instantiate()
-				main.add_child(preview)
-				print("[WorldGen] added SpherePreview to main scene")
-			else:
-				push_error("[WorldGen] failed to load SpherePreview.tscn")
-		if preview and sites and sites.size() > 0:
-			preview.set_sites(sites)
-		if preview and triangles and triangles.size() > 0:
-			preview.set_triangles(Array(triangles))
-		if preview and circumcenters and circumcenters.size() > 0:
-			preview.set_circumcenters(circumcenters)
-		if preview and cells and cells.size() > 0:
-			preview.set_cells(cells)
-		var plate_regions = result.get("plate_regions", null)
-		if plate_regions != null and plate_regions.size() > 0:
-			print("[WorldGen] passing plate_regions to preview size=", plate_regions.size())
-			if preview:
-				preview.set_plate_regions(plate_regions)
-		elif preview:
-			print("[WorldGen] no plate_regions to pass (null or empty)")
-	queue_free()
+	if not main:
+		return
+	var preview = main.get_node_or_null("SpherePreview")
+	for child in main.get_children():
+		if child.name == "SpherePreview" and child != preview:
+			child.queue_free()
+	if preview == null:
+		var preview_scene = load("res://godot/debug/SpherePreview.tscn") as PackedScene
+		if preview_scene:
+			preview = preview_scene.instantiate()
+			main.add_child(preview)
+			print("[WorldGen] added SpherePreview to main scene")
+		else:
+			push_error("[WorldGen] failed to load SpherePreview.tscn")
+	if preview and sites and sites.size() > 0:
+		preview.set_sites(sites)
+	if preview and triangles and triangles.size() > 0:
+		preview.set_triangles(Array(triangles))
+	if preview and circumcenters and circumcenters.size() > 0:
+		preview.set_circumcenters(circumcenters)
+	if preview and cells and cells.size() > 0:
+		preview.set_cells(cells)
+	if plate_regions != null and plate_regions.size() > 0 and preview:
+		preview.set_plate_regions(plate_regions)
+	var plate_elevation = result.get("plate_elevation", null)
+	if plate_elevation != null and plate_elevation.size() > 0 and preview:
+		preview.set_plate_elevation(plate_elevation)
+	var plate_moisture = result.get("plate_moisture", null)
+	if plate_moisture != null and plate_moisture.size() > 0 and preview:
+		preview.set_plate_moisture(plate_moisture)
 
 
 func _apply_ui_assets() -> void:

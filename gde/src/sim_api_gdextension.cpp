@@ -7,11 +7,10 @@
 #include "gen/WorldSeed.hpp"
 #include "gen/Planet.hpp"
 #include "world/PlanetGlobeGenerator.hpp"
-#include "world/TectonicPlateAssigner.hpp"
-#include "world/TectonicPlates.hpp"
-#include "world/VoronoiSphere.hpp"
+#include "world/PlanetGlobe.hpp"
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/packed_float32_array.hpp>
 #include <godot_cpp/variant/packed_int32_array.hpp>
 #include <godot_cpp/variant/packed_vector3_array.hpp>
 #include "api/WorldGenRunner.hpp"
@@ -20,10 +19,18 @@
 #include "DiffConverter.hpp"
 #include "IntentHandler.hpp"
 #include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 
 namespace godot {
+
+namespace {
+	void log_line(std::vector<std::string> &lines, const std::string &s) {
+		UtilityFunctions::print(String(s.c_str()));
+		lines.push_back(s);
+	}
+} // namespace
 
 struct GrowthSim::BridgeHolder {
 	growth::SimBridge bridge;
@@ -52,28 +59,61 @@ void GrowthSim::boot(const String &defdb_path) {
 // World-gen form submit pipeline: parse form -> WorldGenRunner -> set_world_gen -> globe gen -> return Voronoi sites + Delaunay triangles.
 Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
 	Dictionary out;
-	if (!bridge_) return out;
+	std::vector<std::string> log_lines;
+	if (!bridge_) {
+		log_line(log_lines, "[WorldGen] No bridge; skipping.");
+		Array log_arr;
+		for (const auto &s : log_lines) log_arr.push_back(String(s.c_str()));
+		out["log_lines"] = log_arr;
+		return out;
+	}
+	log_line(log_lines, "[WorldGen] Parsing form...");
 	growth::ParsedWorldGenForm parsed;
 	growth_sim::parse_world_gen_form(form_dict, parsed);
+	log_line(log_lines, "[WorldGen] Generating seed and planet genome...");
 	growth::WorldSeed world_seed;
 	growth::PlanetGenome planet_genome;
 	growth::WorldGenRunner runner;
 	runner.run(parsed, world_seed, planet_genome);
-
-	UtilityFunctions::print("[PlanetGen] generating preset=", String(parsed.planet_preset.c_str()), " seed=", (int64_t)world_seed.value,
-		" temperature=", parsed.temperature, "% precipitation=", parsed.precipitation, "%");
+	{
+		std::ostringstream os;
+		os << "[PlanetGen] preset=" << parsed.planet_preset << " seed=" << world_seed.value;
+		log_line(log_lines, os.str());
+	}
+	{
+		std::ostringstream os;
+		os << "[PlanetGen] temperature=" << parsed.temperature << "% precipitation=" << parsed.precipitation << "%";
+		log_line(log_lines, os.str());
+	}
 	bridge_->bridge.set_world_gen(world_seed, planet_genome);
 
 	growth::Planet p(planet_genome);
-	UtilityFunctions::print("[Planet] seed=", (int64_t)planet_genome.seed, " S_eff=", planet_genome.S_eff, " g=", p.g(), " P_orb_days=", p.P_orb() / 86400.0,
-		" T_surf_K=", p.T_surf_estimate(), " precip=", planet_genome.precipitation, " water=", planet_genome.water_fraction,
-		" scale_height_m=", p.scale_height());
+	{
+		std::ostringstream os;
+		os << "[Planet] S_eff=" << planet_genome.S_eff << " T_surf_K=" << p.T_surf_estimate() << " water=" << planet_genome.water_fraction;
+		log_line(log_lines, os.str());
+	}
 
-	UtilityFunctions::print("[PlanetGlobe] began processing (sites=", (int64_t)parsed.voronoi_sites, " jitter=", parsed.jitter, "%)");
-	growth::VoronoiSphere voronoi_sphere;
+	{
+		std::ostringstream os;
+		os << "[PlanetGlobe] Generating Voronoi sphere (sites=" << parsed.voronoi_sites << " jitter=" << parsed.jitter << "%)...";
+		log_line(log_lines, os.str());
+	}
+	float temperature_01 = static_cast<float>(parsed.temperature / 200.0);
+	float precipitation_01 = static_cast<float>(parsed.precipitation / 200.0);
+	if (temperature_01 < 0.0f) temperature_01 = 0.0f;
+	if (temperature_01 > 1.0f) temperature_01 = 1.0f;
+	if (precipitation_01 < 0.0f) precipitation_01 = 0.0f;
+	if (precipitation_01 > 1.0f) precipitation_01 = 1.0f;
+	growth::PlanetGlobe globe;
 	growth::PlanetGlobeGenerator globe_gen;
-	globe_gen.run(world_seed, planet_genome, voronoi_sphere, parsed.voronoi_sites, parsed.jitter);
+	globe_gen.run(world_seed, planet_genome, parsed.voronoi_sites, parsed.jitter, parsed.num_plate_regions, temperature_01, precipitation_01, globe);
+	log_line(log_lines, "[PlanetGlobe] Voronoi done. Assigning tectonic plates...");
+	log_line(log_lines, "[PlanetGlobe] Plates done. Computing elevation...");
+	log_line(log_lines, "[PlanetGlobe] Elevation done. Computing moisture...");
+	log_line(log_lines, "[PlanetGlobe] Moisture done. Marshalling output...");
 
+	const growth::VoronoiSphere &voronoi_sphere = globe.voronoi;
 	// Sites in sim coords (Z-up); SpherePreview converts to Godot Y-up for display.
 	const auto &sites = voronoi_sphere.sites;
 	PackedVector3Array sites_arr;
@@ -92,7 +132,11 @@ Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
 		_last_world_gen_triangles.set(static_cast<int64_t>(i * 3 + 1), static_cast<int32_t>(t[1]));
 		_last_world_gen_triangles.set(static_cast<int64_t>(i * 3 + 2), static_cast<int32_t>(t[2]));
 	}
-	UtilityFunctions::print("[WorldGen] C++ triangles: ", (int64_t)num_tri, " (flat size ", flat_size, ")");
+	{
+		std::ostringstream os;
+		os << "[WorldGen] Triangles: " << num_tri << " (flat size " << flat_size << ")";
+		log_line(log_lines, os.str());
+	}
 	// Also put Array in dict for GDScript consumers that read from result
 	Array tri_arr;
 	tri_arr.resize(flat_size);
@@ -121,18 +165,106 @@ Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
 	}
 	out["cells"] = cells_arr;
 
-	// Tectonic plates: assign each Voronoi region to a plate (random fill from N seeds).
-	UtilityFunctions::print("[PlanetGlobe] tectonic plates: num_plate_regions=", (int64_t)parsed.num_plate_regions);
-	growth::TectonicPlates tectonic_plates;
-	growth::TectonicPlateAssigner plate_assigner;
-	plate_assigner.assign(voronoi_sphere, world_seed, parsed.num_plate_regions, tectonic_plates);
+	// Tectonic plates (from globe pipeline)
+	const growth::TectonicPlates &tectonic_plates = globe.plates;
 	PackedInt32Array plate_regions_arr;
 	plate_regions_arr.resize(static_cast<int64_t>(tectonic_plates.region_to_plate.size()));
 	for (size_t i = 0; i < tectonic_plates.region_to_plate.size(); ++i)
 		plate_regions_arr.set(static_cast<int64_t>(i), tectonic_plates.region_to_plate[i]);
 	out["plate_regions"] = plate_regions_arr;
-	UtilityFunctions::print("[WorldGen] plate_regions size=", plate_regions_arr.size(), " num_plates=", (int64_t)tectonic_plates.num_plates);
+	{
+		std::ostringstream os;
+		os << "[WorldGen] Plates: " << tectonic_plates.num_plates << " regions=" << plate_regions_arr.size();
+		log_line(log_lines, os.str());
+	}
 
+	// Per-region elevation and moisture (primary terrain data)
+	const std::vector<float> &region_elevation = globe.region_elevation.region_elevation;
+	const std::vector<float> &region_moisture = globe.region_moisture.region_moisture;
+	PackedFloat32Array region_elev_arr;
+	region_elev_arr.resize(static_cast<int64_t>(region_elevation.size()));
+	for (size_t i = 0; i < region_elevation.size(); ++i)
+		region_elev_arr.set(static_cast<int64_t>(i), region_elevation[i]);
+	out["region_elevation"] = region_elev_arr;
+	PackedFloat32Array region_moist_arr;
+	region_moist_arr.resize(static_cast<int64_t>(region_moisture.size()));
+	for (size_t i = 0; i < region_moisture.size(); ++i)
+		region_moist_arr.set(static_cast<int64_t>(i), region_moisture[i]);
+	out["region_moisture"] = region_moist_arr;
+
+	// Per-triangle elevation and moisture (average of three regions)
+	const std::vector<float> &triangle_elevation = globe.triangle_values.triangle_elevation;
+	const std::vector<float> &triangle_moisture = globe.triangle_values.triangle_moisture;
+	PackedFloat32Array triangle_elev_arr;
+	triangle_elev_arr.resize(static_cast<int64_t>(triangle_elevation.size()));
+	for (size_t i = 0; i < triangle_elevation.size(); ++i)
+		triangle_elev_arr.set(static_cast<int64_t>(i), triangle_elevation[i]);
+	out["triangle_elevation"] = triangle_elev_arr;
+	PackedFloat32Array triangle_moist_arr;
+	triangle_moist_arr.resize(static_cast<int64_t>(triangle_moisture.size()));
+	for (size_t i = 0; i < triangle_moisture.size(); ++i)
+		triangle_moist_arr.set(static_cast<int64_t>(i), triangle_moisture[i]);
+	out["triangle_moisture"] = triangle_moist_arr;
+
+	// Per-plate elevation/moisture (averaged from regions, for plate labels / backward compat)
+	const size_t num_plates = tectonic_plates.num_plates;
+	PackedFloat32Array plate_elev_arr;
+	PackedFloat32Array plate_moist_arr;
+	plate_elev_arr.resize(static_cast<int64_t>(num_plates));
+	plate_moist_arr.resize(static_cast<int64_t>(num_plates));
+	std::vector<double> plate_elev_sum(num_plates, 0.0);
+	std::vector<double> plate_moist_sum(num_plates, 0.0);
+	std::vector<size_t> plate_count(num_plates, 0u);
+	for (size_t i = 0; i < tectonic_plates.region_to_plate.size(); ++i) {
+		int32_t p = tectonic_plates.region_to_plate[i];
+		if (p < 0 || static_cast<size_t>(p) >= num_plates) continue;
+		if (i < region_elevation.size()) plate_elev_sum[static_cast<size_t>(p)] += static_cast<double>(region_elevation[i]);
+		if (i < region_moisture.size()) plate_moist_sum[static_cast<size_t>(p)] += static_cast<double>(region_moisture[i]);
+		plate_count[static_cast<size_t>(p)]++;
+	}
+	for (size_t p = 0; p < num_plates; ++p) {
+		if (plate_count[p] > 0) {
+			plate_elev_arr.set(static_cast<int64_t>(p), static_cast<float>(plate_elev_sum[p] / static_cast<double>(plate_count[p])));
+			plate_moist_arr.set(static_cast<int64_t>(p), static_cast<float>(plate_moist_sum[p] / static_cast<double>(plate_count[p])));
+		} else {
+			plate_elev_arr.set(static_cast<int64_t>(p), 0.0f);
+			plate_moist_arr.set(static_cast<int64_t>(p), 0.5f);
+		}
+	}
+	out["plate_elevation"] = plate_elev_arr;
+	out["plate_moisture"] = plate_moist_arr;
+
+	// Half-edge mesh connectivity (for streaming / detailed map generation)
+	const growth::SphereHalfEdgeMesh &mesh = globe.mesh;
+	const size_t num_sides = mesh.num_sides();
+	constexpr int32_t mesh_invalid = -1;
+	PackedInt32Array s_begin_r_arr, s_end_r_arr, s_inner_t_arr, s_outer_t_arr, s_next_s_arr, s_twin_s_arr;
+	s_begin_r_arr.resize(static_cast<int64_t>(num_sides));
+	s_end_r_arr.resize(static_cast<int64_t>(num_sides));
+	s_inner_t_arr.resize(static_cast<int64_t>(num_sides));
+	s_outer_t_arr.resize(static_cast<int64_t>(num_sides));
+	s_next_s_arr.resize(static_cast<int64_t>(num_sides));
+	s_twin_s_arr.resize(static_cast<int64_t>(num_sides));
+	for (size_t i = 0; i < num_sides; ++i) {
+		s_begin_r_arr.set(static_cast<int64_t>(i), static_cast<int32_t>(mesh.s_begin_r[i]));
+		s_end_r_arr.set(static_cast<int64_t>(i), static_cast<int32_t>(mesh.s_end_r[i]));
+		s_inner_t_arr.set(static_cast<int64_t>(i), static_cast<int32_t>(mesh.s_inner_t[i]));
+		s_outer_t_arr.set(static_cast<int64_t>(i), mesh.s_outer_t[i] == growth::SphereHalfEdgeMesh::k_invalid ? mesh_invalid : static_cast<int32_t>(mesh.s_outer_t[i]));
+		s_next_s_arr.set(static_cast<int64_t>(i), static_cast<int32_t>(mesh.s_next_s[i]));
+		s_twin_s_arr.set(static_cast<int64_t>(i), mesh.s_twin_s[i] == growth::SphereHalfEdgeMesh::k_invalid ? mesh_invalid : static_cast<int32_t>(mesh.s_twin_s[i]));
+	}
+	out["mesh_s_begin_r"] = s_begin_r_arr;
+	out["mesh_s_end_r"] = s_end_r_arr;
+	out["mesh_s_inner_t"] = s_inner_t_arr;
+	out["mesh_s_outer_t"] = s_outer_t_arr;
+	out["mesh_s_next_s"] = s_next_s_arr;
+	out["mesh_s_twin_s"] = s_twin_s_arr;
+
+	log_line(log_lines, "[WorldGen] Done.");
+	Array log_arr;
+	for (const auto &s : log_lines)
+		log_arr.push_back(String(s.c_str()));
+	out["log_lines"] = log_arr;
 	return out;
 }
 

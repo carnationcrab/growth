@@ -48,6 +48,12 @@ public partial class SpherePreviewOverlay : Control
 		var voronoiNow = preview.GetNodeOrNull<Node3D>("Voronoi");
 		var tectonicCb = vbox.GetNodeOrNull<CheckBox>("TectonicPlatesRow/TectonicPlatesCheck");
 		var tectonicNow = preview.GetNodeOrNull<Node3D>("TectonicPlates");
+		var elevationCb = vbox.GetNodeOrNull<CheckBox>("ElevationRow/ElevationCheck");
+		var elevationNow = preview.GetNodeOrNull<Node3D>("Elevation");
+		var moistureCb = vbox.GetNodeOrNull<CheckBox>("MoistureRow/MoistureCheck");
+		var moistureNow = preview.GetNodeOrNull<Node3D>("Moisture");
+		var plateLabelsCb = vbox.GetNodeOrNull<CheckBox>("PlateLabelsRow/PlateLabelsCheck");
+		var plateLabelsNow = preview.GetNodeOrNull<Node3D>("PlateLabels");
 
 		if (sphereCb != null && globe != null)
 		{
@@ -116,6 +122,39 @@ public partial class SpherePreviewOverlay : Control
 				var tectonic = GetSpherePreview()?.GetNodeOrNull<Node3D>("TectonicPlates");
 				if (tectonic != null)
 					tectonic.Visible = on;
+			};
+		}
+		if (elevationCb != null)
+		{
+			if (elevationNow != null)
+				elevationCb.ButtonPressed = elevationNow.Visible;
+			elevationCb.Toggled += (bool on) =>
+			{
+				var elevation = GetSpherePreview()?.GetNodeOrNull<Node3D>("Elevation");
+				if (elevation != null)
+					elevation.Visible = on;
+			};
+		}
+		if (moistureCb != null)
+		{
+			if (moistureNow != null)
+				moistureCb.ButtonPressed = moistureNow.Visible;
+			moistureCb.Toggled += (bool on) =>
+			{
+				var moisture = GetSpherePreview()?.GetNodeOrNull<Node3D>("Moisture");
+				if (moisture != null)
+					moisture.Visible = on;
+			};
+		}
+		if (plateLabelsCb != null)
+		{
+			if (plateLabelsNow != null)
+				plateLabelsCb.ButtonPressed = plateLabelsNow.Visible;
+			plateLabelsCb.Toggled += (bool on) =>
+			{
+				var plateLabels = GetSpherePreview()?.GetNodeOrNull<Node3D>("PlateLabels");
+				if (plateLabels != null)
+					plateLabels.Visible = on;
 			};
 		}
 	}

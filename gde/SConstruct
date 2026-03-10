@@ -29,10 +29,15 @@ sources = [
     "sim_core/src/world/ChunkStore.cpp",
     "sim_core/src/world/BowyerWatson.cpp",
     "sim_core/src/world/Delaunay2D.cpp",
+    "sim_core/src/world/ElevationAssigner.cpp",
     "sim_core/src/world/FibonacciSphere.cpp",
-    "sim_core/src/world/VoronoiSphereGenerator.cpp",
+    "sim_core/src/world/MoistureAssigner.cpp",
+    "sim_core/src/world/PlatePropertiesAssigner.cpp",
     "sim_core/src/world/PlanetGlobeGenerator.cpp",
+    "sim_core/src/world/SphereHalfEdgeMesh.cpp",
     "sim_core/src/world/TectonicPlateAssigner.cpp",
+    "sim_core/src/world/TriangleValues.cpp",
+    "sim_core/src/world/VoronoiSphereGenerator.cpp",
 ]
 lib = env.SharedLibrary("bin/growth_sim", sources)
 Default(lib)

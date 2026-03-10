@@ -114,6 +114,43 @@ public partial class SimAPI : Node
 				}
 				else
 					GD.Print("[SimAPI] apply_world_gen_form: no plate_regions in result");
+				if (dict.ContainsKey("log_lines"))
+					result["log_lines"] = dict["log_lines"];
+				if (dict.ContainsKey("plate_elevation"))
+				{
+					var elev = dict["plate_elevation"].As<float[]>();
+					if (elev != null && elev.Length > 0)
+					{
+						var elevArr = new Godot.Collections.Array();
+						foreach (var x in elev) elevArr.Add(x);
+						result["plate_elevation"] = elevArr;
+					}
+					else
+						result["plate_elevation"] = dict["plate_elevation"];
+				}
+				if (dict.ContainsKey("plate_moisture"))
+				{
+					var moist = dict["plate_moisture"].As<float[]>();
+					if (moist != null && moist.Length > 0)
+					{
+						var moistArr = new Godot.Collections.Array();
+						foreach (var x in moist) moistArr.Add(x);
+						result["plate_moisture"] = moistArr;
+					}
+					else
+						result["plate_moisture"] = dict["plate_moisture"];
+				}
+				// Per-region and per-triangle terrain (for streaming / detailed map)
+				ForwardFloatArray(dict, result, "region_elevation");
+				ForwardFloatArray(dict, result, "region_moisture");
+				ForwardFloatArray(dict, result, "triangle_elevation");
+				ForwardFloatArray(dict, result, "triangle_moisture");
+				ForwardIntArray(dict, result, "mesh_s_begin_r");
+				ForwardIntArray(dict, result, "mesh_s_end_r");
+				ForwardIntArray(dict, result, "mesh_s_inner_t");
+				ForwardIntArray(dict, result, "mesh_s_outer_t");
+				ForwardIntArray(dict, result, "mesh_s_next_s");
+				ForwardIntArray(dict, result, "mesh_s_twin_s");
 				return result;
 			}
 		}
@@ -122,6 +159,34 @@ public partial class SimAPI : Node
 		empty["sites"] = System.Array.Empty<Vector3>();
 		empty["triangles"] = System.Array.Empty<int>();
 		return empty;
+	}
+
+	private static void ForwardFloatArray(Godot.Collections.Dictionary dict, Godot.Collections.Dictionary result, string key)
+	{
+		if (!dict.ContainsKey(key)) return;
+		var arr = dict[key].As<float[]>();
+		if (arr != null && arr.Length > 0)
+		{
+			var outArr = new Godot.Collections.Array();
+			foreach (var x in arr) outArr.Add(x);
+			result[key] = outArr;
+		}
+		else
+			result[key] = dict[key];
+	}
+
+	private static void ForwardIntArray(Godot.Collections.Dictionary dict, Godot.Collections.Dictionary result, string key)
+	{
+		if (!dict.ContainsKey(key)) return;
+		var arr = dict[key].As<int[]>();
+		if (arr != null && arr.Length > 0)
+		{
+			var outArr = new Godot.Collections.Array();
+			foreach (var x in arr) outArr.Add(x);
+			result[key] = outArr;
+		}
+		else
+			result[key] = dict[key];
 	}
 
 	/// <summary>Snake_case alias for GDScript.</summary>

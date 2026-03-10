@@ -29,6 +29,8 @@ public partial class SpherePreview : Node3D
 	private Vector3[] _circumcenters;
 	private int[][] _cells;
 	private int[] _plateRegions;
+	private float[] _plateElevation;
+	private float[] _plateMoisture;
 
 	public override void _Ready()
 	{
@@ -144,7 +146,13 @@ public partial class SpherePreview : Node3D
 		{
 			BuildCircumcentersLayer();
 			if (_cells != null && _cells.Length > 0)
+			{
 				BuildVoronoiRegionsLayer();
+				if (_plateElevation != null && _plateElevation.Length > 0)
+					BuildElevationLayer();
+				if (_plateMoisture != null && _plateMoisture.Length > 0)
+					BuildMoistureLayer();
+			}
 		}
 	}
 
@@ -178,7 +186,13 @@ public partial class SpherePreview : Node3D
 		{
 			BuildCircumcentersLayer();
 			if (_cells != null && _cells.Length > 0)
+			{
 				BuildVoronoiRegionsLayer();
+				if (_plateElevation != null && _plateElevation.Length > 0)
+					BuildElevationLayer();
+				if (_plateMoisture != null && _plateMoisture.Length > 0)
+					BuildMoistureLayer();
+			}
 		}
 	}
 
@@ -230,6 +244,12 @@ public partial class SpherePreview : Node3D
 			return;
 		}
 		BuildTectonicPlatesLayer();
+		if (_plateElevation != null && _plateElevation.Length > 0)
+			BuildElevationLayer();
+		if (_plateMoisture != null && _plateMoisture.Length > 0)
+			BuildMoistureLayer();
+		if (_plateElevation != null && _plateMoisture != null && _plateElevation.Length > 0 && _plateMoisture.Length > 0)
+			BuildPlateLabelsLayer();
 	}
 
 	/// <summary>GDScript-callable; accepts PackedInt32Array or Array from apply_world_gen_form result.</summary>
@@ -251,6 +271,72 @@ public partial class SpherePreview : Node3D
 			return;
 		}
 		GD.PushWarning("[SpherePreview] set_plate_regions: could not convert to int array.");
+	}
+
+	/// <summary>Per-plate elevation (negative = ocean, positive = land). Used to build Elevation layer; colour by plate_regions[site].</summary>
+	public void SetPlateElevation(float[] elevation)
+	{
+		_plateElevation = elevation;
+		GD.Print("[SpherePreview] SetPlateElevation: plates=", elevation?.Length ?? 0);
+		if (_circumcenters == null || _cells == null || _plateRegions == null || _plateElevation == null || _plateElevation.Length == 0)
+			return;
+		BuildElevationLayer();
+		if (_plateMoisture != null && _plateMoisture.Length > 0)
+			BuildPlateLabelsLayer();
+	}
+
+	/// <summary>GDScript-callable; accepts Array or float[] (one value per plate).</summary>
+	public void set_plate_elevation(Variant elevation)
+	{
+		var floats = elevation.As<float[]>();
+		if (floats != null && floats.Length > 0)
+		{
+			SetPlateElevation(floats);
+			return;
+		}
+		var arr = elevation.As<Godot.Collections.Array>();
+		if (arr != null && arr.Count > 0)
+		{
+			var farr = new float[arr.Count];
+			for (int i = 0; i < arr.Count; i++)
+				farr[i] = (float)arr[i].As<double>();
+			SetPlateElevation(farr);
+			return;
+		}
+		GD.PushWarning("[SpherePreview] set_plate_elevation: could not convert to float array.");
+	}
+
+	/// <summary>Per-plate moisture (0–1). Used to build Moisture layer; colour by plate_regions[site].</summary>
+	public void SetPlateMoisture(float[] moisture)
+	{
+		_plateMoisture = moisture;
+		GD.Print("[SpherePreview] SetPlateMoisture: plates=", moisture?.Length ?? 0);
+		if (_circumcenters == null || _cells == null || _plateRegions == null || _plateMoisture == null || _plateMoisture.Length == 0)
+			return;
+		BuildMoistureLayer();
+		if (_plateElevation != null && _plateElevation.Length > 0)
+			BuildPlateLabelsLayer();
+	}
+
+	/// <summary>GDScript-callable; accepts Array or float[] (one value per plate).</summary>
+	public void set_plate_moisture(Variant moisture)
+	{
+		var floats = moisture.As<float[]>();
+		if (floats != null && floats.Length > 0)
+		{
+			SetPlateMoisture(floats);
+			return;
+		}
+		var arr = moisture.As<Godot.Collections.Array>();
+		if (arr != null && arr.Count > 0)
+		{
+			var farr = new float[arr.Count];
+			for (int i = 0; i < arr.Count; i++)
+				farr[i] = (float)arr[i].As<double>();
+			SetPlateMoisture(farr);
+			return;
+		}
+		GD.PushWarning("[SpherePreview] set_plate_moisture: could not convert to float array.");
 	}
 
 	public override void _Process(double delta)
@@ -616,6 +702,200 @@ public partial class SpherePreview : Node3D
 		AddChild(container);
 		container.Visible = true;
 		GD.Print("[SpherePreview] Tectonic plates layer added: triangles=", triCount, " cells=", _cells.Length, " radius_scale=", plateRadiusScale);
+	}
+
+	/// <summary>Elevation layer: colour by plate elevation (ocean blue, land green→brown→grey).</summary>
+	private void BuildElevationLayer()
+	{
+		if (_circumcenters == null || _cells == null || _plateRegions == null || _plateElevation == null || _plateElevation.Length == 0)
+			return;
+		var existing = GetNodeOrNull<Node3D>("Elevation");
+		if (existing != null)
+			existing.QueueFree();
+
+		const float layerRadiusScale = 1.003f;
+		var verts = new Vector3[_circumcenters.Length];
+		for (int i = 0; i < _circumcenters.Length; i++)
+			verts[i] = SimToGodot(_circumcenters[i]) * (SphereRadius * layerRadiusScale);
+
+		var deepBlue = new Color(0.05f, 0.15f, 0.45f);
+		var shallowBlue = new Color(0.35f, 0.55f, 0.85f);
+		var green = new Color(0.2f, 0.6f, 0.25f);
+		var brown = new Color(0.45f, 0.35f, 0.2f);
+		var grey = new Color(0.5f, 0.5f, 0.5f);
+
+		var imm = new ImmediateMesh();
+		imm.SurfaceBegin(Mesh.PrimitiveType.Triangles);
+		int maxIdx = verts.Length - 1;
+		int triCount = 0;
+		for (int site = 0; site < _cells.Length && site < _plateRegions.Length; site++)
+		{
+			var cell = _cells[site];
+			if (cell == null || cell.Length < 3) continue;
+			int plateId = _plateRegions[site];
+			if (plateId < 0 || plateId >= _plateElevation.Length) continue;
+			float elev = _plateElevation[plateId];
+			Color col;
+			if (elev < 0f)
+			{
+				float t = Mathf.Clamp((elev + 1f), 0f, 1f);
+				col = deepBlue.Lerp(shallowBlue, t);
+			}
+			else
+			{
+				float t = Mathf.Clamp(elev, 0f, 1f);
+				col = t < 0.5f ? green.Lerp(brown, t * 2f) : brown.Lerp(grey, (t - 0.5f) * 2f);
+			}
+			for (int j = 1; j < cell.Length - 1; j++)
+			{
+				int i0 = cell[0], i1 = cell[j], i2 = cell[j + 1];
+				if (i0 < 0 || i0 > maxIdx || i1 < 0 || i1 > maxIdx || i2 < 0 || i2 > maxIdx) continue;
+				imm.SurfaceSetColor(col);
+				imm.SurfaceAddVertex(verts[i0]);
+				imm.SurfaceSetColor(col);
+				imm.SurfaceAddVertex(verts[i1]);
+				imm.SurfaceSetColor(col);
+				imm.SurfaceAddVertex(verts[i2]);
+				triCount++;
+			}
+		}
+		imm.SurfaceEnd();
+
+		var mat = new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			Transparency = BaseMaterial3D.TransparencyEnum.Disabled,
+			VertexColorUseAsAlbedo = true,
+			CullMode = BaseMaterial3D.CullModeEnum.Disabled
+		};
+		var container = new Node3D { Name = "Elevation" };
+		container.AddChild(new MeshInstance3D { Mesh = imm, MaterialOverride = mat });
+		AddChild(container);
+		container.Visible = true;
+		GD.Print("[SpherePreview] Elevation layer added: triangles=", triCount);
+	}
+
+	/// <summary>Moisture layer: colour by plate moisture (0 = dry brown, 1 = wet green).</summary>
+	private void BuildMoistureLayer()
+	{
+		if (_circumcenters == null || _cells == null || _plateRegions == null || _plateMoisture == null || _plateMoisture.Length == 0)
+			return;
+		var existing = GetNodeOrNull<Node3D>("Moisture");
+		if (existing != null)
+			existing.QueueFree();
+
+		const float layerRadiusScale = 1.004f;
+		var verts = new Vector3[_circumcenters.Length];
+		for (int i = 0; i < _circumcenters.Length; i++)
+			verts[i] = SimToGodot(_circumcenters[i]) * (SphereRadius * layerRadiusScale);
+
+		var dryColor = new Color(0.55f, 0.4f, 0.25f);
+		var wetColor = new Color(0.2f, 0.6f, 0.3f);
+
+		var imm = new ImmediateMesh();
+		imm.SurfaceBegin(Mesh.PrimitiveType.Triangles);
+		int maxIdx = verts.Length - 1;
+		int triCount = 0;
+		for (int site = 0; site < _cells.Length && site < _plateRegions.Length; site++)
+		{
+			var cell = _cells[site];
+			if (cell == null || cell.Length < 3) continue;
+			int plateId = _plateRegions[site];
+			if (plateId < 0 || plateId >= _plateMoisture.Length) continue;
+			float m = Mathf.Clamp(_plateMoisture[plateId], 0f, 1f);
+			Color col = dryColor.Lerp(wetColor, m);
+			for (int j = 1; j < cell.Length - 1; j++)
+			{
+				int i0 = cell[0], i1 = cell[j], i2 = cell[j + 1];
+				if (i0 < 0 || i0 > maxIdx || i1 < 0 || i1 > maxIdx || i2 < 0 || i2 > maxIdx) continue;
+				imm.SurfaceSetColor(col);
+				imm.SurfaceAddVertex(verts[i0]);
+				imm.SurfaceSetColor(col);
+				imm.SurfaceAddVertex(verts[i1]);
+				imm.SurfaceSetColor(col);
+				imm.SurfaceAddVertex(verts[i2]);
+				triCount++;
+			}
+		}
+		imm.SurfaceEnd();
+
+		var mat = new StandardMaterial3D
+		{
+			ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+			Transparency = BaseMaterial3D.TransparencyEnum.Disabled,
+			VertexColorUseAsAlbedo = true,
+			CullMode = BaseMaterial3D.CullModeEnum.Disabled
+		};
+		var container = new Node3D { Name = "Moisture" };
+		container.AddChild(new MeshInstance3D { Mesh = imm, MaterialOverride = mat });
+		AddChild(container);
+		container.Visible = true;
+		GD.Print("[SpherePreview] Moisture layer added: triangles=", triCount);
+	}
+
+	/// <summary>Per-plate labels: elevation and moisture numbers at the centre of each plate.</summary>
+	private void BuildPlateLabelsLayer()
+	{
+		if (_sites == null || _plateRegions == null || _plateElevation == null || _plateMoisture == null ||
+			_plateElevation.Length == 0 || _plateMoisture.Length == 0)
+			return;
+		var existing = GetNodeOrNull<Node3D>("PlateLabels");
+		if (existing != null)
+			existing.QueueFree();
+
+		const float labelRadiusScale = 1.008f;
+		int numPlates = Mathf.Min(_plateElevation.Length, _plateMoisture.Length);
+		var container = new Node3D { Name = "PlateLabels" };
+
+		for (int plateId = 0; plateId < numPlates; plateId++)
+		{
+			Vector3 sum = Vector3.Zero;
+			int count = 0;
+			for (int i = 0; i < _plateRegions.Length && i < _sites.Length; i++)
+			{
+				if (_plateRegions[i] == plateId)
+				{
+					sum += _sites[i];
+					count++;
+				}
+			}
+			if (count == 0) continue;
+			Vector3 dir = (sum / count).Normalized();
+			if (dir.LengthSquared() < 0.0001f) continue;
+			Vector3 pos = dir * (SphereRadius * labelRadiusScale);
+
+			float elev = _plateElevation[plateId];
+			float moist = _plateMoisture[plateId];
+			var lightBlue = new Color(0.6f, 0.85f, 1.0f);
+
+			var elevLabel = new Label3D
+			{
+				Text = elev.ToString("F2"),
+				FontSize = 48,
+				PixelSize = 0.025f,
+				OutlineSize = 12,
+				Modulate = Colors.White,
+				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+				Position = pos
+			};
+			container.AddChild(elevLabel);
+
+			var moistLabel = new Label3D
+			{
+				Text = moist.ToString("F2"),
+				FontSize = 48,
+				PixelSize = 0.025f,
+				OutlineSize = 12,
+				Modulate = lightBlue,
+				Billboard = BaseMaterial3D.BillboardModeEnum.Enabled,
+				Position = pos + new Vector3(0f, -0.5f, 0f)
+			};
+			container.AddChild(moistLabel);
+		}
+
+		AddChild(container);
+		container.Visible = true;
+		GD.Print("[SpherePreview] Plate labels added: ", container.GetChildCount(), " plates");
 	}
 
 	private void ClearWorldTerrain()
