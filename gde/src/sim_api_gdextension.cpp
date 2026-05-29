@@ -5,11 +5,13 @@
 #include "bridge/Diff.hpp"
 #include "world/WorldCoord.hpp"
 #include "api/WorldGenJob.hpp"
+#include "world/PlanetSurfaceAtlasBuilder.hpp"
 #include "WorldGenFormParser.hpp"
 #include "WorldGenMarshal.hpp"
 #include "DiffConverter.hpp"
 #include "IntentHandler.hpp"
 #include "base/gateway/Cmemory.hpp"
+#include "base/gateway/Cutility.hpp"
 #include "base/gateway/Csstream.hpp"
 #include "base/gateway/Cstring.hpp"
 #include <godot_cpp/variant/array.hpp>
@@ -38,6 +40,9 @@ void GrowthSim::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("poll_diffs", "max_count"), &GrowthSim::poll_diffs);
 	ClassDB::bind_method(D_METHOD("apply_intent", "intent_dict"), &GrowthSim::apply_intent);
 	ClassDB::bind_method(D_METHOD("get_ui_asset_path", "asset_id"), &GrowthSim::get_ui_asset_path);
+	ClassDB::bind_method(D_METHOD("has_overworld"), &GrowthSim::has_overworld);
+	ClassDB::bind_method(D_METHOD("commit_overworld_for_play"), &GrowthSim::commit_overworld_for_play);
+	ClassDB::bind_method(D_METHOD("sample_surface", "unit_dir"), &GrowthSim::sample_surface);
 }
 
 void GrowthSim::boot(const String &defdb_path) {
@@ -90,6 +95,9 @@ Dictionary GrowthSim::apply_world_gen_form(const Dictionary &form_dict) {
 
 	if (result.ok) {
 		bridge_->bridge.set_world_gen(result.world_seed, result.planet_genome);
+		growth::PlanetSurfaceAtlas atlas;
+		growth::PlanetSurfaceAtlasBuilder::build_from_globe(result.globe, atlas);
+		bridge_->bridge.set_overworld_surface(growth::Cutility::move(atlas));
 		::growth_sim::marshal_world_gen_job_result(result, out, _last_world_gen_triangles);
 	}
 
@@ -146,6 +154,33 @@ String GrowthSim::get_ui_asset_path(const String &p_asset_id) {
 	if (!bridge_) return String();
 	const growth::String path = bridge_->bridge.defs().ui_asset_path(id);
 	return path.empty() ? String() : String(path.c_str());
+}
+
+bool GrowthSim::has_overworld() const {
+	return bridge_ && bridge_->bridge.has_overworld();
+}
+
+void GrowthSim::commit_overworld_for_play() {
+	if (bridge_)
+		bridge_->bridge.commit_overworld_for_play();
+}
+
+Dictionary GrowthSim::sample_surface(Vector3 unit_dir) {
+	Dictionary out;
+	if (!bridge_ || !bridge_->bridge.has_overworld())
+		return out;
+	const growth::Vec3 dir(
+		static_cast<float>(unit_dir.x),
+		static_cast<float>(unit_dir.y),
+		static_cast<float>(unit_dir.z));
+	const growth::SurfaceSample s = bridge_->bridge.sample_surface(dir);
+	out["region_id"] = static_cast<int>(s.region_id);
+	out["plate_id"] = static_cast<int>(s.plate_id);
+	out["elevation"] = s.elevation;
+	out["moisture"] = s.moisture;
+	out["temperature"] = s.temperature;
+	out["biome_id"] = static_cast<int>(s.biome_id);
+	return out;
 }
 
 } // namespace godot

@@ -45,6 +45,8 @@ sources = [
     "sim_core/src/world/PlanetGlobeFieldUpsampler.cpp",
     "sim_core/src/world/PlanetGlobeGenerator.cpp",
     "sim_core/src/world/PlanetGlobePipeline.cpp",
+    "sim_core/src/world/PlanetSurfaceAtlasBuilder.cpp",
+    "sim_core/src/world/OverworldSurfaceSampler.cpp",
     "sim_core/src/world/PlanetTerrainMesh.cpp",
     "sim_core/src/world/PlatePropertiesAssigner.cpp",
     "sim_core/src/world/RegionNeighbourIndex.cpp",

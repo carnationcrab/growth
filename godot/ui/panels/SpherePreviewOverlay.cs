@@ -45,6 +45,55 @@ public partial class SpherePreviewOverlay : Control
 		ApplyUiAssets();
 		DisableKeyboardFocusOnLayerControls();
 		EnsureLayerTogglesConnected();
+		WireStartButton();
+	}
+
+	private void WireStartButton()
+	{
+		var startBtn = GetNodeOrNull<Button>("StartAnchor/StartButton");
+		if (startBtn == null)
+			return;
+		startBtn.Pressed += OnStartPressed;
+	}
+
+	private void OnStartPressed()
+	{
+		GD.Print("[SpherePreviewOverlay] Start pressed — committing overworld and entering game world.");
+		var simApi = GetNodeOrNull<SimAPI>("/root/SimAPI");
+		if (simApi == null)
+		{
+			GD.PushError("[SpherePreviewOverlay] SimAPI autoload not found.");
+			return;
+		}
+		if (!simApi.HasOverworld())
+		{
+			GD.PushWarning("[SpherePreviewOverlay] Start: no overworld in sim — generate a world first.");
+			return;
+		}
+		simApi.CommitOverworldForPlay();
+		GD.Print("[SpherePreviewOverlay] overworld committed for play.");
+		var main = FindMainScene();
+		if (main == null)
+		{
+			GD.PushError("[SpherePreviewOverlay] Start: Main scene not found.");
+			return;
+		}
+		GD.Print("[SpherePreviewOverlay] entering game world on ", main.Name, ".");
+		simApi.EnterGameWorld(main);
+		GD.Print("[SpherePreviewOverlay] Start sequence complete.");
+	}
+
+	private static Node FindMainScene()
+	{
+		var tree = Engine.GetMainLoop() as SceneTree;
+		if (tree?.Root == null)
+			return null;
+		foreach (Node child in tree.Root.GetChildren())
+		{
+			if (child.Name == "Main" || child.GetNodeOrNull("WorldRoot") != null)
+				return child;
+		}
+		return tree.Root.GetChildCount() > 0 ? tree.Root.GetChild(0) : null;
 	}
 
 	private void DisableKeyboardFocusOnLayerControls()

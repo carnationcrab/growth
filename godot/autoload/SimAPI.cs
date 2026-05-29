@@ -15,6 +15,8 @@ public partial class SimAPI : Node
 	private readonly ChunkStreamingEngine _streaming = new();
 	private readonly UiAssetEngine _uiAssets = new();
 	private readonly PresentationSceneEngine _presentation = new();
+	private readonly OverworldSessionEngine _overworld = new();
+	private readonly PlayWorldEntryEngine _playEntry = new();
 
 	public override void _Ready()
 	{
@@ -98,4 +100,30 @@ public partial class SimAPI : Node
 	/// <summary>Snake_case alias for GDScript.</summary>
 	public void apply_world_gen_preview_heavy(Node preview, Godot.Collections.Dictionary result)
 		=> ApplyWorldGenPreviewHeavy(preview, result);
+
+	/// <summary>True when the sim bridge holds a PlanetSurfaceAtlas from the last world gen.</summary>
+	public bool HasOverworld() => _overworld.HasOverworld(_backend);
+
+	/// <summary>Snake_case alias for GDScript.</summary>
+	public bool has_overworld() => HasOverworld();
+
+	/// <summary>Mark overworld as committed for play (idempotent).</summary>
+	public void CommitOverworldForPlay() => _overworld.CommitForPlay(_backend);
+
+	/// <summary>Snake_case alias for GDScript.</summary>
+	public void commit_overworld_for_play() => CommitOverworldForPlay();
+
+	/// <summary>Sample overworld fields at a unit direction in sim space (Z-up).</summary>
+	public Godot.Collections.Dictionary SampleSurface(Vector3 unitDirSim)
+		=> _overworld.SampleSurface(_backend, unitDirSim);
+
+	/// <summary>Snake_case alias for GDScript.</summary>
+	public Godot.Collections.Dictionary sample_surface(Vector3 unitDirSim)
+		=> SampleSurface(unitDirSim);
+
+	/// <summary>Leave planet preview and begin game-world streaming on Main.</summary>
+	public void EnterGameWorld(Node main) => _playEntry.Enter(main, _backend, _streaming);
+
+	/// <summary>Snake_case alias for GDScript.</summary>
+	public void enter_game_world(Node main) => EnterGameWorld(main);
 }

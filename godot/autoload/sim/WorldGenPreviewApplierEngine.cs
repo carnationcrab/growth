@@ -24,6 +24,8 @@ public static class WorldGenPreviewApplierEngine
 		preview.Call("set_planet_preset", payload.PlanetPreset);
 		ApplyCoreFields(preview, payload);
 		ApplyHeavyOrDeferred(preview, payload, showMeshOnly);
+		// SpherePreview._Ready clears WorldRoot children; drop stale chunk refs (GW-7.0c).
+		WorldViewManager.ResetStreamingOnMain(main);
 	}
 
 	public static void ApplyHeavy(Node preview, Godot.Collections.Dictionary result)

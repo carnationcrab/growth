@@ -30,6 +30,50 @@ public partial class WorldViewManager : Node
 			GD.PushError("WorldViewManager: ChunkNode.tscn not found.");
 	}
 
+	/// <summary>Clear cached chunk nodes (e.g. when leaving overworld preview).</summary>
+	public void reset_streaming()
+	{
+		int count = _chunks.Count;
+		int freed = 0;
+		foreach (var kv in _chunks)
+		{
+			if (SafeReleaseNode(kv.Value))
+				freed++;
+		}
+		_chunks.Clear();
+		GD.Print("[WorldViewManager] reset_streaming: dropped ", count, " cache entries, freed ", freed, " live node(s).");
+	}
+
+	/// <summary>Sync chunk cache after preview cleared WorldRoot without notifying this controller.</summary>
+	public static void ResetStreamingOnMain(Node main)
+	{
+		if (FindOnMain(main) is WorldViewManager wvm)
+			wvm.reset_streaming();
+	}
+
+	private static WorldViewManager FindOnMain(Node main)
+	{
+		if (main == null)
+			return null;
+		foreach (Node child in main.GetChildren())
+		{
+			if (child is WorldViewManager wvm)
+				return wvm;
+			if (child.GetScript().As<Script>() is CSharpScript cs
+				&& cs.ResourcePath.EndsWith("WorldViewManager.cs"))
+				return child as WorldViewManager;
+		}
+		return null;
+	}
+
+	private static bool SafeReleaseNode(Node node)
+	{
+		if (node == null || !GodotObject.IsInstanceValid(node))
+			return false;
+		node.QueueFree();
+		return true;
+	}
+
 	/// <summary>Call each frame with current focus position to stream chunks.</summary>
 	public void update_streaming(Vector3 focusPos)
 	{
@@ -96,7 +140,7 @@ public partial class WorldViewManager : Node
 		if (!_chunks.TryGetValue(coord, out Node node))
 			return;
 		_chunks.Remove(coord);
-		node.QueueFree();
+		SafeReleaseNode(node);
 	}
 
 	private void ApplyCellChanged(Godot.Collections.Dictionary d)
@@ -119,7 +163,7 @@ public partial class WorldViewManager : Node
 			if (_chunks.TryGetValue(coord, out Node node))
 			{
 				_chunks.Remove(coord);
-				node.QueueFree();
+				SafeReleaseNode(node);
 			}
 		}
 	}

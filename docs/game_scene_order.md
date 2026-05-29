@@ -19,8 +19,8 @@ Source of truth for *which* scenes run: `data/core/defs/game_profile.xml` → `s
 | 2 | `WorldViewManager` (script, not `.tscn`) | Child of `Main` | Registers `chunk_node` path; streaming ready | No chunks yet |
 | 3 | `worldGenMenu.tscn` | Instantiated on `UILayer` in `Main._ready` | UI textures from `ui_assets.xml` via `SimAPI` | World-gen form (seed, size, climate sliders, plates, optional terrain mesh) |
 | 4 | `worldGenLoadScreen.tscn` | Child of `UILayer` after **Generate** | **Today:** blocking `SimAPI.apply_world_gen_form(form)`. **Target:** `start_world_gen_async` + poll + `take_world_gen_async_result` (SA-4.1, OW-4.6) | Progress bar, stage log, **Continue** (hidden until gen finishes); Cancel (target: OW-4.2) |
-| 5 | `SpherePreview.tscn` | Child of `Main` after **Continue** | Overworld result dict: sites, triangles, circumcenters, cells, plates, elevation, moisture, optional terrain mesh | **Overworld** debug view (not game world); menu removed |
-| 6 | `SpherePreviewOverlay.tscn` | Child of `SpherePreview`'s `OverlayLayer` | Layer toggles drive preview meshes | Panel: layer checkboxes (sites, Delaunay, Voronoi, plates, etc.) |
+| 5 | `SpherePreview.tscn` | Child of `Main` after **Continue** | Marshal dict for debug meshes; **`PlanetSurfaceAtlas` in `SimBridge`** (sites, topology tris, region neighbours, plate/elev/moisture per region) | **Overworld** debug view (not game world); menu removed |
+| 6 | `SpherePreviewOverlay.tscn` | Child of `SpherePreview`'s `OverlayLayer` | Layer toggles; **Start** → `commit_overworld_for_play` + `enter_game_world` | Layer panel (left); **Start** button (bottom-right) |
 | 7 | `ChunkNode.tscn` | On demand under `WorldRoot` via `WorldViewManager` | `ChunkLoaded` diffs from `SimAPI` (stub or sim) | **Game world** chunks — **disabled while `SpherePreview` is present** |
 
 There is no `ChangeSceneToFile` today: one persistent `Main` scene; UI and preview are **added and removed as children**.
@@ -66,7 +66,7 @@ There is no `ChangeSceneToFile` today: one persistent `Main` scene; UI and previ
 - **Data:**
   - Form dict from `WorldGenCardFormBinder` (target: OW-3.4) → async world gen on worker thread; poll on UI thread (SA-4.1).
   - C++: parse form → `WorldGenRunner` + `PlanetGlobePipeline` (`default_globe` or `deterministic_globe` from form).
-  - On success: seed + genome in bridge; **target** overworld atlas in bridge (OW-E2). Marshal dict for preview only.
+  - On success: seed + genome + **`PlanetSurfaceAtlas`** in bridge (OW-E1/E2). Marshal dict for preview only.
 - **Screen:** “Generating world…” → log → **Continue**.
 
 ### 5 — Planet preview (post–world gen)
@@ -81,7 +81,15 @@ There is no `ChangeSceneToFile` today: one persistent `Main` scene; UI and previ
 - **Registry:** `sphere_preview_overlay` → `res://godot/ui/panels/SpherePreviewOverlay.tscn`
 - **When:** `SpherePreview._Ready` → `AddOverlay()`.
 - **Data:** Toggle visibility on preview layers.
-- **Screen:** Layer control panel over the 3D view.
+- **Screen:** Layer control panel (left); **Start** anchored bottom-right.
+
+### 5b — Start → game world
+
+- **When:** User presses **Start** on `SpherePreviewOverlay`.
+- **Data:**
+  - `SimAPI.commit_overworld_for_play()` (session flag; idempotent).
+  - `SimAPI.enter_game_world(main)` → removes `SpherePreview`, `WorldViewManager.reset_streaming()`, initial `request_chunks` at focus.
+- **Screen:** Preview and overlay gone; orbit camera on `Main` remains; chunks stream under `WorldRoot` (step 7).
 
 ### 7 — Chunk streaming (parallel lifecycle, suppressed in preview)
 

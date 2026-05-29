@@ -14,7 +14,7 @@ This document records the **highest-impact gaps** found when comparing implement
 
 | # | Issue | Symptom | Primary stories |
 |---|--------|---------|-----------------|
-| 1 | No overworld atlas in `SimBridge` | No sim-side “where on the planet?” | OW-E1, OW-E2, OW-E6, OW-E20 |
+| 1 | ~~No overworld atlas in `SimBridge`~~ **partial** | Atlas + `sample_surface` in bridge; marshal still duplicates data (OW-E6) | OW-E6, OW-E20 |
 | 2 | Sync `take_result` on main thread | Frozen UI, OOM on huge worlds | SA-0.2, SA-E1–E2, OW-4.6, SA-4.1 |
 | 3 | No `poll_world_gen_async` in API | Fake progress, no cancel | SA-0.2, OW-4.1–4.2, OW-4.6 |
 | 4 | Incomplete world-gen form | Size preset useless, always heavy sim | OW-3.4, SA-3.1, OW-3.6 |
@@ -27,20 +27,13 @@ This document records the **highest-impact gaps** found when comparing implement
 
 ---
 
-## 1. Overworld generation is thrown away after marshalling to Godot
+## 1. Overworld generation is thrown away after marshalling to Godot — **partial (2026-05-28)**
 
-The pipeline builds a full `PlanetGlobe`, but `SimBridge` only keeps seed and genome. Region elevation, plates, rivers, and mesh never live in the sim after generation.
+**Resolved for session play:** `apply_world_gen_form` builds `PlanetSurfaceAtlas` (per-region sites, topology triangles, neighbours CSR, plate/elevation/moisture) into `SimBridge`. **Start** calls `commit_overworld_for_play` and `enter_game_world`. `sample_surface(unit_dir)` returns region scalars + derived temperature.
 
-```13:16:gde/sim_core/src/bridge/SimBridge.cpp
-void SimBridge::set_world_gen(WorldSeed world_seed, const PlanetGenome &planet_genome) {
-	world_seed_ = world_seed;
-	planet_genome_ = planet_genome;
-}
-```
+**Still open:** Full `PlanetGlobe` / half-edge mesh is not retained after the job completes (OW-E20). Godot preview still receives a large marshal dict in parallel (OW-E6). Rivers / triangle_values not in atlas v1.
 
-**Impact:** Gameplay cannot query the overworld from C++. Only `SpherePreview` holds geometry via a marshal dictionary—the anti-pattern called out in the overworld epic vision.
-
-**Stories:** OW-E1 (atlas build), OW-E2 (bridge ownership), OW-E6 (marshal from atlas), OW-E20 (release transient globe memory).
+**Stories:** OW-E6 (marshal from atlas), OW-E20 (release transient globe memory).
 
 ---
 

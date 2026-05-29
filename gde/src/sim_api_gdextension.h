@@ -5,6 +5,7 @@
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_int32_array.hpp>
 #include <godot_cpp/variant/packed_vector3_array.hpp>
+#include <godot_cpp/variant/vector3.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include "base/gateway/Cstring.hpp"
 
@@ -39,6 +40,10 @@ public:
 
 	/// <summary>Return res:// path for a UI asset id from data/core/defs/ui_assets.xml. Empty if unknown.</summary>
 	String get_ui_asset_path(const String &p_asset_id);
+
+	bool has_overworld() const;
+	void commit_overworld_for_play();
+	Dictionary sample_surface(Vector3 unit_dir);
 };
 
 } // namespace godot

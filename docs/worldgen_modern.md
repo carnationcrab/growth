@@ -288,3 +288,7 @@ Stages are registered in C++ by stable `stage_id` strings; order comes from `wor
 Default pipeline `default_globe` (see [moddability.md](moddability.md)): topology → half_edge_mesh → region_neighbours → tectonic_plates → plate_properties → elevation → moisture → triangle_values → priority_flood → river_downflow → river_flow → erosion → river_carve → terrain_mesh (optional).
 
 Implementation lives under `gde/sim_core/include/world/` (`IcosphereEngine`, `TectonicPlateAssigner`, `ElevationAssigner`, `RiverFlow`, `PlanetTerrainMesh`, etc.), orchestrated by `PlanetGlobePipeline`.
+
+### Session atlas vs preview marshal
+
+After world gen, **`PlanetSurfaceAtlasBuilder`** copies compact gameplay fields from `PlanetGlobe` into **`SimBridge`** (fixed topology + per-region plate, elevation, moisture). Temperature is derived at query time (`OverworldSurfaceSampler`), not stored. The Godot marshal dict remains for **`SpherePreview`** debug layers only; pressing **Start** commits the session and enters chunk streaming without re-uploading arrays. See [game_scene_order.md](game_scene_order.md) step 5b.
