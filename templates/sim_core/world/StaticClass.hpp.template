@@ -1,0 +1,21 @@
+// TEMPLATE: world/StaticClass | CHECKLIST: templates/README.md § sim_core/world/StaticClass
+#pragma once
+
+#include "math/Vec3.hpp"
+#include <array>
+#include <cstddef>
+#include <vector>
+
+namespace growth {
+
+struct {{DependencyStruct}};
+
+/// {{BriefDescription}}
+class {{ClassName}} {
+public:
+	static Vec3 {{static_method}}(const {{DependencyStruct}} &topology, const std::array<size_t, 3> &triangle);
+
+	static void {{build_method}}(const {{DependencyStruct}} &topology, {{OutputType}} &out);
+};
+
+} // namespace growth

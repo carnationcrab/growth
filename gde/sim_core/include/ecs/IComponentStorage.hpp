@@ -1,8 +1,8 @@
 #pragma once
 
 #include "EntityId.hpp"
-#include <cstddef>
-#include <typeindex>
+#include "base/gateway/Cstddef.hpp"
+#include "base/gateway/Ctypeindex.hpp"
 
 namespace growth {
 
@@ -11,7 +11,7 @@ namespace growth {
 struct IComponentStorage {
 	virtual ~IComponentStorage() = default;
 
-	virtual std::type_index type_id() const = 0;
+	virtual TypeIndex type_id() const = 0;
 	virtual bool has(EntityId e) const = 0;
 	virtual void *get_ptr(EntityId e) = 0;
 	virtual const void *get_ptr(EntityId e) const = 0;

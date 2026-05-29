@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TEMPLATE: data/core/pack_manifest | CHECKLIST: register new defs/schemas in manifest -->
+<pack_manifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+				xsi:noNamespaceSchemaLocation="schemas/pack_manifest.xsd"
+				pack_id="core">
+  <version>1</version>
+  <defs>
+	<file>defs/{{new_def_file}}.xml</file>
+  </defs>
+  <schemas>
+	<file>schemas/{{new_def_file}}.xsd</file>
+  </schemas>
+</pack_manifest>

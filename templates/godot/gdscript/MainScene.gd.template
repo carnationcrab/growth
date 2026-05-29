@@ -1,0 +1,37 @@
+# TEMPLATE: godot/MainScene | CHECKLIST: profile-driven paths only · canonical: main/Main.gd
+extends Node3D
+## Main scene: boots data-driven assembly, ticks sim, drives world streaming.
+
+@onready var world_root: Node3D = $WorldRoot
+@onready var focus: Node3D = $Focus
+
+var _world_view: Node = null
+
+
+func _ready() -> void:
+	_init_sim_bridge()
+	_init_world_streaming()
+	_show_entry_menu()
+
+
+func _show_entry_menu() -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "UILayer"
+	add_child(layer)
+	var menu_path: String = SimAPI.get_presentation_scene_path("{{entry_binding}}")
+	if menu_path.is_empty():
+		push_error("[Main] no {{entry_binding}} in game profile")
+		return
+	var menu_scene := load(menu_path) as PackedScene
+	if menu_scene:
+		layer.add_child(menu_scene.instantiate())
+
+
+func _process(delta: float) -> void:
+	SimAPI.step(delta, 1.0)
+	_update_world_streaming()
+
+
+func _init_sim_bridge() -> void:
+	var data_root: String = ProjectSettings.globalize_path("res://data/")
+	SimAPI.boot(data_root, "default")

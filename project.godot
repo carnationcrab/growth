@@ -19,6 +19,13 @@ config/icon="res://icon.svg"
 
 SimAPI="*res://godot/autoload/SimAPI.cs"
 
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="viewport"
+window/stretch/aspect="expand"
+
 [dotnet]
 
 project/assembly_name="growth"

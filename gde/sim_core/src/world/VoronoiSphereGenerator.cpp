@@ -4,14 +4,15 @@
 #include "world/VoronoiSphereGenerator.hpp"
 #include "math/Vec3.hpp"
 #include "util/Random.hpp"
-#include <algorithm>
-#include <cmath>
-#include <cstddef>
-#include <iostream>
-#include <map>
-#include <set>
-#include <unordered_map>
-#include <vector>
+#include "base/gateway/Calgorithm.hpp"
+#include "base/gateway/Cmath.hpp"
+#include "base/gateway/Cstddef.hpp"
+#include "base/gateway/Ciostream.hpp"
+#include "base/gateway/Cmap.hpp"
+#include "base/gateway/Cset.hpp"
+#include "base/gateway/Cunordered_map.hpp"
+#include "base/gateway/Cutility.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
@@ -32,27 +33,27 @@ namespace {
 		v = p.y / denom;
 	}
 
-	using Edge = std::pair<size_t, size_t>;
+	using Edge = Pair<size_t, size_t>;
 	Edge ordered_edge(size_t a, size_t b) {
 		return a < b ? Edge{a, b} : Edge{b, a};
 	}
 
 	/// Find the boundary cycle (convex hull). Boundary edges appear in exactly one triangle.
 	/// Build adjacency so every boundary edge is kept; traverse by following "neighbour we didn't come from".
-	bool boundary_cycle(const std::vector<std::array<size_t, 3>> &triangles,
-	                   std::vector<size_t> &cycle_out) {
+	bool boundary_cycle(const Vector<Array<size_t, 3>> &triangles,
+	                   Vector<size_t> &cycle_out) {
 		cycle_out.clear();
-		std::map<Edge, int> edge_count;
+		Map<Edge, int> edge_count;
 		for (const auto &t : triangles) {
 			edge_count[ordered_edge(t[0], t[1])]++;
 			edge_count[ordered_edge(t[1], t[2])]++;
 			edge_count[ordered_edge(t[2], t[0])]++;
 		}
-		std::map<Edge, bool> is_boundary;
+		Map<Edge, bool> is_boundary;
 		for (const auto &kv : edge_count)
 			if (kv.second == 1) is_boundary[kv.first] = true;
 		if (is_boundary.empty()) return false;
-		std::unordered_map<size_t, std::vector<size_t>> adj;
+		UnorderedMap<size_t, Vector<size_t>> adj;
 		for (const auto &t : triangles) {
 			for (int i = 0; i < 3; ++i) {
 				size_t a = t[i], b = t[(i + 1) % 3];
@@ -81,15 +82,15 @@ namespace {
 	}
 
 	/// Normalise 2D points into a bounded box for stable Delaunay.
-	void normalise_projected(std::vector<Vec2> &projected) {
+	void normalise_projected(Vector<Vec2> &projected) {
 		const size_t nn = projected.size();
 		if (nn == 0) return;
 		float min_u = projected[0].x, max_u = projected[0].x, min_v = projected[0].y, max_v = projected[0].y;
 		for (size_t i = 1; i < nn; ++i) {
-			min_u = std::min(min_u, projected[i].x);
-			max_u = std::max(max_u, projected[i].x);
-			min_v = std::min(min_v, projected[i].y);
-			max_v = std::max(max_v, projected[i].y);
+			min_u = Calgorithm::min(min_u, projected[i].x);
+			max_u = Calgorithm::max(max_u, projected[i].x);
+			min_v = Calgorithm::min(min_v, projected[i].y);
+			max_v = Calgorithm::max(max_v, projected[i].y);
 		}
 		const float range_u = max_u - min_u, range_v = max_v - min_v;
 		const float range = (range_u > range_v ? range_u : range_v);
@@ -104,14 +105,14 @@ namespace {
 	/// Max tangent-plane displacement at 100% jitter (fraction of radius); keeps Delaunay stable.
 	const float k_max_jitter_radius = 0.25f;
 
-	void apply_site_jitter(std::vector<Vec3> &sites, size_t num_to_jitter, uint64_t seed, float jitter_percent) {
+	void apply_site_jitter(Vector<Vec3> &sites, size_t num_to_jitter, uint64_t seed, float jitter_percent) {
 		if (jitter_percent <= 0.0f || num_to_jitter == 0) return;
 		const float scale = (jitter_percent / 100.0f) * k_max_jitter_radius;
 		random::RNG rng(seed);
 		for (size_t i = 0; i < num_to_jitter; ++i) {
 			Vec3 &p = sites[i];
 			Vec3 axis(0.0f, 0.0f, 1.0f);
-			if (std::fabs(p.z) > 0.9f) axis = Vec3(1.0f, 0.0f, 0.0f);
+			if (Cmath::abs(p.z) > 0.9f) axis = Vec3(1.0f, 0.0f, 0.0f);
 			Vec3 u = p.cross(axis);
 			if (u.length() < 1e-6f) continue;
 			u = u.normalised();
@@ -125,17 +126,17 @@ namespace {
 } // namespace
 
 VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size_t num_sites, float jitter_percent) const {
-	std::cerr << "[VoronoiSphereGenerator] generate start (sites=" << num_sites << " jitter=" << jitter_percent << "%)\n";
+	Ciostream::cerr() << "[VoronoiSphereGenerator] generate start (sites=" << num_sites << " jitter=" << jitter_percent << "%)\n";
 	VoronoiSphere out;
 	FibonacciSphere::fill(num_sites, out.sites);
 	const size_t n = out.sites.size();
-	std::cerr << "[VoronoiSphereGenerator] Fibonacci sites: " << n << "\n";
+	Ciostream::cerr() << "[VoronoiSphereGenerator] Fibonacci sites: " << n << "\n";
 
 	if (jitter_percent > 0.0f)
 		apply_site_jitter(out.sites, n, world_seed.value, jitter_percent);
 
 	// 1) Project sites to 2D (stereographic) and normalise
-	std::vector<Vec2> projected(n);
+	Vector<Vec2> projected(n);
 	for (size_t i = 0; i < n; ++i) {
 		float u, v;
 		stereographic(out.sites[i], u, v);
@@ -145,14 +146,14 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 	normalise_projected(projected);
 
 	// 2) Delaunay on the plane (leaves one boundary = hole)
-	std::vector<std::array<size_t, 3>> tri;
+	Vector<Array<size_t, 3>> tri;
 	Delaunay2D::triangulate(projected, tri);
-	std::cerr << "[VoronoiSphereGenerator] Delaunay triangles (2D): " << tri.size() << "\n";
+	Ciostream::cerr() << "[VoronoiSphereGenerator] Delaunay triangles (2D): " << tri.size() << "\n";
 
 	if (tri.empty() && n >= 3) {
 		for (size_t i = 1; i + 1 < n; ++i)
 			tri.push_back({{0, i, i + 1}});
-		std::cerr << "[VoronoiSphereGenerator] fallback fan triangles: " << tri.size() << "\n";
+		Ciostream::cerr() << "[VoronoiSphereGenerator] fallback fan triangles: " << tri.size() << "\n";
 	}
 
 	// 3) Delaunay triangles first (all indices 0..n-1)
@@ -160,7 +161,7 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 		out.triangles.push_back(t);
 
 	// 4) Fill the hole: add cap vertex at centroid of boundary and fan triangles (Bowyer–Watson doesn't connect an extra point)
-	std::vector<size_t> boundary;
+	Vector<size_t> boundary;
 	if (boundary_cycle(tri, boundary) && boundary.size() >= 3) {
 		Vec3 centroid(0.0f, 0.0f, 0.0f);
 		for (size_t idx : boundary)
@@ -174,7 +175,7 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 			size_t b = boundary[(i + 1) % boundary.size()];
 			out.triangles.push_back({{a, b, cap_idx}});
 		}
-		std::cerr << "[VoronoiSphereGenerator] hole filled: cap index " << cap_idx << ", " << boundary.size() << " fan triangles\n";
+		Ciostream::cerr() << "[VoronoiSphereGenerator] hole filled: cap index " << cap_idx << ", " << boundary.size() << " fan triangles\n";
 	}
 
 	// 5) Voronoi vertices: one circumcenter (on sphere) per triangle.
@@ -191,20 +192,20 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 	}
 
 	// 6) Edge -> triangle indices (for walking neighbour tris)
-	using Edge = std::pair<size_t, size_t>;
-	std::map<Edge, std::vector<size_t>> edge_to_tris;
+	using Edge = Pair<size_t, size_t>;
+	Map<Edge, Vector<size_t>> edge_to_tris;
 	for (size_t i = 0; i < out.triangles.size(); ++i) {
 		const auto &t = out.triangles[i];
 		for (int e = 0; e < 3; ++e) {
 			size_t u = t[e], v = t[(e + 1) % 3];
-			if (u > v) std::swap(u, v);
+			if (u > v) Cutility::swap(u, v);
 			edge_to_tris[{u, v}].push_back(i);
 		}
 	}
 
 	// 7) Per-site Voronoi cells: ordered circumcenter indices around each site.
 	// Build site -> triangle indices once (O(triangles)) so we don't scan all triangles per site.
-	std::vector<std::vector<size_t>> site_to_tris(out.sites.size());
+	Vector<Vector<size_t>> site_to_tris(out.sites.size());
 	for (size_t i = 0; i < out.triangles.size(); ++i) {
 		const auto &t = out.triangles[i];
 		if (t[0] < out.sites.size()) site_to_tris[t[0]].push_back(i);
@@ -214,7 +215,7 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 	out.cells.resize(out.sites.size());
 	const size_t max_walk = out.triangles.size() + 1u; // guard against non-manifold / degenerate meshes
 	for (size_t s = 0; s < out.sites.size(); ++s) {
-		std::vector<size_t> &cell = out.cells[s];
+		Vector<size_t> &cell = out.cells[s];
 		if (site_to_tris[s].empty()) continue;
 		const size_t start_tri = site_to_tris[s][0];
 		// Walk triangles around s
@@ -230,7 +231,7 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 		do {
 			if (++steps > max_walk) break; // avoid infinite loop on degenerate edge (e.g. 3+ tris)
 			cell.push_back(cur_tri);
-			Edge e(std::min(s, leave_v), std::max(s, leave_v));
+			Edge e(Calgorithm::min(s, leave_v), Calgorithm::max(s, leave_v));
 			const auto &neighbours = edge_to_tris[e];
 			size_t next_tri = cur_tri;
 			for (size_t nb : neighbours) {
@@ -249,7 +250,7 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 	}
 
 	// 8) Drop any site not referenced by any triangle (phantom points from degeneracy or duplicates)
-	std::set<size_t> used_sites;
+	Set<size_t> used_sites;
 	for (const auto &t : out.triangles) {
 		used_sites.insert(t[0]);
 		used_sites.insert(t[1]);
@@ -257,28 +258,28 @@ VoronoiSphere VoronoiSphereGenerator::generate(const WorldSeed &world_seed, size
 	}
 	if (used_sites.size() < out.sites.size()) {
 		const size_t num_removed = out.sites.size() - used_sites.size();
-		std::vector<size_t> used_list(used_sites.begin(), used_sites.end());
-		std::unordered_map<size_t, size_t> old_to_new;
+		Vector<size_t> used_list(used_sites.begin(), used_sites.end());
+		UnorderedMap<size_t, size_t> old_to_new;
 		for (size_t i = 0; i < used_list.size(); ++i)
 			old_to_new[used_list[i]] = i;
-		std::vector<Vec3> new_sites(used_list.size());
+		Vector<Vec3> new_sites(used_list.size());
 		for (size_t i = 0; i < used_list.size(); ++i)
 			new_sites[i] = out.sites[used_list[i]];
-		std::vector<std::array<size_t, 3>> new_triangles(out.triangles.size());
+		Vector<Array<size_t, 3>> new_triangles(out.triangles.size());
 		for (size_t i = 0; i < out.triangles.size(); ++i) {
 			const auto &t = out.triangles[i];
 			new_triangles[i] = {{old_to_new[t[0]], old_to_new[t[1]], old_to_new[t[2]]}};
 		}
-		std::vector<std::vector<size_t>> new_cells(used_list.size());
+		Vector<Vector<size_t>> new_cells(used_list.size());
 		for (size_t i = 0; i < used_list.size(); ++i)
-			new_cells[i] = std::move(out.cells[used_list[i]]);
-		out.sites = std::move(new_sites);
-		out.triangles = std::move(new_triangles);
-		out.cells = std::move(new_cells);
-		std::cerr << "[VoronoiSphereGenerator] removed " << num_removed << " phantom site(s)\n";
+			new_cells[i] = Cutility::move(out.cells[used_list[i]]);
+		out.sites = Cutility::move(new_sites);
+		out.triangles = Cutility::move(new_triangles);
+		out.cells = Cutility::move(new_cells);
+		Ciostream::cerr() << "[VoronoiSphereGenerator] removed " << num_removed << " phantom site(s)\n";
 	}
 
-	std::cerr << "[VoronoiSphereGenerator] done: sites=" << out.sites.size() << " triangles=" << out.triangles.size()
+	Ciostream::cerr() << "[VoronoiSphereGenerator] done: sites=" << out.sites.size() << " triangles=" << out.triangles.size()
 		<< " circumcenters=" << out.circumcenters.size() << " cells=" << out.cells.size() << "\n";
 	return out;
 }

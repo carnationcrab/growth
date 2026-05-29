@@ -1,18 +1,22 @@
 #pragma once
 
 #include "../gen/WorldSeed.hpp"
+#include "../util/CsrGraph.hpp"
 #include "PlateProperties.hpp"
+#include "SphereTopology.hpp"
 #include "TectonicPlates.hpp"
-#include "VoronoiSphere.hpp"
-#include <cstddef>
+#include "base/gateway/Cstddef.hpp"
 
 namespace growth {
 
-/// Assigns per-plate movement vector and ocean/continental flag. Deterministic from WorldSeed.
+/// Builds per-plate properties (Euler-pole angular velocity + oceanic flag). Deterministic.
 class PlatePropertiesAssigner {
 public:
-	/// Fill out.plate_vector and out.plate_is_ocean from voronoi_sphere and tectonic_plates.
-	void assign(const VoronoiSphere &voronoi_sphere, const TectonicPlates &tectonic_plates, const WorldSeed &world_seed, PlateProperties &out) const;
+	void assign(const SphereTopology &topology,
+	            const CsrGraph &region_neighbours,
+	            const TectonicPlates &tectonic_plates,
+	            const WorldSeed &world_seed,
+	            PlateProperties &out) const;
 };
 
 } // namespace growth

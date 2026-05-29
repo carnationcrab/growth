@@ -1,0 +1,10 @@
+// TEMPLATE: math/TypeAlias | CHECKLIST: add to Math.hpp — canonical: math/Vec2.hpp
+#pragma once
+
+#include "Vector.hpp"
+
+namespace growth {
+
+using {{Alias}} = Vector<double, {{Dimension}}>;
+
+} // namespace growth

@@ -1,15 +1,15 @@
 #pragma once
 
 #include "../world/WorldCoord.hpp"
-#include <vector>
-#include <variant>
-#include <cstdint>
+#include "base/gateway/Cvector.hpp"
+#include "base/gateway/Cvariant.hpp"
+#include "base/gateway/Cstdint.hpp"
 
 namespace growth {
 
 struct ChunkLoadedDiff {
 	ChunkCoord coord;
-	std::vector<float> height_samples;  // (size+1)*(size+1), row-major
+	Vector<float> height_samples;  // (size+1)*(size+1), row-major
 };
 
 struct ChunkUnloadedDiff {

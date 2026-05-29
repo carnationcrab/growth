@@ -1,8 +1,8 @@
 #pragma once
 
 #include "IComponentStorage.hpp"
-#include <typeindex>
-#include <vector>
+#include "base/gateway/Ctypeindex.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
@@ -10,7 +10,7 @@ namespace growth {
 template<typename T>
 class ComponentStorage : public IComponentStorage {
 public:
-	std::type_index type_id() const override { return std::type_index(typeid(T)); }
+	TypeIndex type_id() const override { return TypeIndex(typeid(T)); }
 
 	bool has(EntityId e) const override {
 		if (e >= sparse_.size()) return false;
@@ -43,13 +43,13 @@ public:
 	template<typename... Args>
 	T &emplace(EntityId e, Args &&... args) {
 		if (has(e)) {
-			data_[sparse_[e]] = T(std::forward<Args>(args)...);
+			data_[sparse_[e]] = T(Cutility::forward<Args>(args)...);
 			return data_[sparse_[e]];
 		}
 		if (e >= sparse_.size()) sparse_.resize(e + 1, invalid_index());
 		size_t i = dense_.size();
 		dense_.push_back(e);
-		data_.emplace_back(std::forward<Args>(args)...);
+		data_.emplace_back(Cutility::forward<Args>(args)...);
 		sparse_[e] = i;
 		return data_.back();
 	}
@@ -59,7 +59,7 @@ public:
 		size_t i = sparse_[e];
 		EntityId last_e = dense_.back();
 		dense_[i] = last_e;
-		data_[i] = std::move(data_.back());
+		data_[i] = Cutility::move(data_.back());
 		sparse_[last_e] = i;
 		dense_.pop_back();
 		data_.pop_back();
@@ -72,9 +72,9 @@ public:
 private:
 	static constexpr size_t invalid_index() { return static_cast<size_t>(-1); }
 
-	std::vector<EntityId> dense_;
-	std::vector<size_t> sparse_;
-	std::vector<T> data_;
+	Vector<EntityId> dense_;
+	Vector<size_t> sparse_;
+	Vector<T> data_;
 };
 
 } // namespace growth

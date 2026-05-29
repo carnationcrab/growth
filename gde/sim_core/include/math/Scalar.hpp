@@ -1,6 +1,7 @@
 #pragma once
 
-#include <cmath>
+#include "base/gateway/Cmath.hpp"
+
 
 namespace growth {
 

@@ -3,8 +3,8 @@
 #include "gen/PlanetBlueprint.hpp"
 #include "gen/Planet.hpp"
 #include "util/Random.hpp"
-#include <cmath>
-#include <algorithm>
+#include "base/gateway/Cmath.hpp"
+#include "base/gateway/Calgorithm.hpp"
 
 namespace growth {
 
@@ -32,16 +32,16 @@ namespace {
 			return spec.a;
 		case DistType::Uniform: {
 			double v = spec.a + (spec.b - spec.a) * u;
-			return spec.log_space ? std::exp(v) : v;
+			return spec.log_space ? Cmath::exp(v) : v;
 		}
 		case DistType::LogUniform: {
-			double log_a = std::log(std::max(spec.a, 1e-300));
-			double log_b = std::log(std::max(spec.b, 1e-300));
-			return std::exp(log_a + (log_b - log_a) * u);
+			double log_a = Cmath::log(Calgorithm::max(spec.a, 1e-300));
+			double log_b = Cmath::log(Calgorithm::max(spec.b, 1e-300));
+			return Cmath::exp(log_a + (log_b - log_a) * u);
 		}
 		case DistType::Normal: {
 			double u2 = rng.next_double();
-			double z = std::sqrt(-2.0 * std::log(std::max(u, 1e-300))) * std::cos(2.0 * pi * u2);
+			double z = Cmath::sqrt(-2.0 * Cmath::log(Calgorithm::max(u, 1e-300))) * Cmath::cos(2.0 * pi * u2);
 			double v = spec.a + spec.b * z;
 			if (spec.c <= spec.d)
 				v = clamp_d(v, spec.c, spec.d);
@@ -53,8 +53,8 @@ namespace {
 			if (alpha < 1) alpha = 1;
 			if (beta < 1) beta = 1;
 			double ga = 0.0, gb = 0.0;
-			for (int i = 0; i < alpha; ++i) ga -= std::log(std::max(rng.next_double(), 1e-300));
-			for (int i = 0; i < beta; ++i)  gb -= std::log(std::max(rng.next_double(), 1e-300));
+			for (int i = 0; i < alpha; ++i) ga -= Cmath::log(Calgorithm::max(rng.next_double(), 1e-300));
+			for (int i = 0; i < beta; ++i)  gb -= Cmath::log(Calgorithm::max(rng.next_double(), 1e-300));
 			double b = ga / (ga + gb);
 			return spec.c + (spec.d - spec.c) * b;
 		}
@@ -88,7 +88,7 @@ PlanetGenome PlanetGenerator::generate(uint64_t seed, const PlanetGuardrails &g)
 
 	out.L_star = lerp(g.L_star_min, g.L_star_max, static_cast<double>(rng.next_float()));
 	out.a = lerp(g.a_min, g.a_max, static_cast<double>(rng.next_float()));
-	out.e = std::min(g.e_max, static_cast<double>(rng.next_float()) * g.e_max);
+	out.e = Calgorithm::min(g.e_max, static_cast<double>(rng.next_float()) * g.e_max);
 	out.M_p = lerp(g.M_p_min, g.M_p_max, static_cast<double>(rng.next_float()));
 	out.R_p = lerp(g.R_p_min, g.R_p_max, static_cast<double>(rng.next_float()));
 	out.P_rot = lerp(g.P_rot_min, g.P_rot_max, static_cast<double>(rng.next_float()));
@@ -101,7 +101,7 @@ PlanetGenome PlanetGenerator::generate(uint64_t seed, const PlanetGuardrails &g)
 	out.mean_molecular_weight = 0.02897;
 	out.precipitation = 0.5;
 	out.material_tags = 0;
-	out.S_eff = out.L_star / (4.0 * pi * out.a * out.a * S_earth * std::sqrt(1.0 - out.e * out.e));
+	out.S_eff = out.L_star / (4.0 * pi * out.a * out.a * S_earth * Cmath::sqrt(1.0 - out.e * out.e));
 	if (out.S_eff <= 0.0) out.S_eff = 1.0;
 
 	return out;
@@ -121,9 +121,9 @@ PlanetGenome PlanetGenerator::generate_from_blueprint(const PlanetGenBlueprint &
 		rng.set_seed(mix_stream(bp.seed, bp.stream_ids.orbit));
 		double S_eff = sample_dist(bp.S_eff_target, rng);
 		S_eff = clamp_d(S_eff, bp.constraints.insolation_min, bp.constraints.insolation_max);
-		out.a = std::sqrt(out.L_star / (4.0 * pi_val * S_earth * S_eff));
+		out.a = Cmath::sqrt(out.L_star / (4.0 * pi_val * S_earth * S_eff));
 		out.e = sample_dist(bp.e, rng);
-		out.e = std::min(out.e, bp.constraints.eccentricity_max);
+		out.e = Calgorithm::min(out.e, bp.constraints.eccentricity_max);
 
 		rng.set_seed(mix_stream(bp.seed, bp.stream_ids.bulk));
 		out.M_p = sample_dist(bp.M_p, rng);

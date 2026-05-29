@@ -1,7 +1,7 @@
 #include "world/PlateElevationAssigner.hpp"
 #include "util/Random.hpp"
-#include <cmath>
-#include <cstddef>
+#include "base/gateway/Cmath.hpp"
+#include "base/gateway/Cstddef.hpp"
 
 namespace growth {
 

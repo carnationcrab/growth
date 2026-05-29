@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="game_profile">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="presentation" type="PresentationDef"/>
+        <xs:element name="world_gen" type="WorldGenBindingDef"/>
+      </xs:sequence>
+      <xs:attribute name="profile_id" type="xs:ID" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="PresentationDef">
+    <xs:sequence>
+      <xs:element name="entry_menu" type="SceneBindingDef"/>
+      <xs:element name="world_gen_load_screen" type="SceneBindingDef" minOccurs="0"/>
+      <xs:element name="world_view" type="ScriptBindingDef"/>
+      <xs:element name="planet_preview" type="SceneBindingDef" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SceneBindingDef">
+    <xs:attribute name="scene_id" type="xs:string" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="ScriptBindingDef">
+    <xs:attribute name="script_id" type="xs:string" use="required"/>
+  </xs:complexType>
+  <xs:complexType name="WorldGenBindingDef">
+    <xs:attribute name="pipeline_id" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:schema>

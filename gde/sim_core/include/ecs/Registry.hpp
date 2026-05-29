@@ -3,12 +3,12 @@
 #include "ComponentStorage.hpp"
 #include "EntityId.hpp"
 #include "IComponentStorage.hpp"
-#include <cassert>
-#include <functional>
-#include <memory>
-#include <typeindex>
-#include <unordered_map>
-#include <vector>
+#include "base/gateway/Cassert.hpp"
+#include "base/gateway/Cfunctional.hpp"
+#include "base/gateway/Cmemory.hpp"
+#include "base/gateway/Ctypeindex.hpp"
+#include "base/gateway/Cunordered_map.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
@@ -80,7 +80,7 @@ public:
 
 	template<typename T, typename... Args>
 	T &emplace(EntityId e, Args &&... args) {
-		return ensure_storage<T>()->emplace(e, std::forward<Args>(args)...);
+		return ensure_storage<T>()->emplace(e, Cutility::forward<Args>(args)...);
 	}
 
 	template<typename T>
@@ -143,36 +143,36 @@ public:
 private:
 	template<typename T>
 	ComponentStorage<T> *ensure_storage() {
-		std::type_index key = std::type_index(typeid(T));
+		TypeIndex key = TypeIndex(typeid(T));
 		auto it = storages_map_.find(key);
 		if (it != storages_map_.end())
 			return static_cast<ComponentStorage<T> *>(it->second);
-		auto s = std::make_unique<ComponentStorage<T>>();
+		auto s = Cmemory::make_unique<ComponentStorage<T>>();
 		ComponentStorage<T> *p = s.get();
-		storages_.push_back(std::move(s));
+		storages_.push_back(Cutility::move(s));
 		storages_map_[key] = p;
 		return p;
 	}
 
 	template<typename T>
 	ComponentStorage<T> *find_storage() {
-		auto it = storages_map_.find(std::type_index(typeid(T)));
+		auto it = storages_map_.find(TypeIndex(typeid(T)));
 		return it != storages_map_.end() ? static_cast<ComponentStorage<T> *>(it->second) : nullptr;
 	}
 
 	template<typename T>
 	const ComponentStorage<T> *find_storage() const {
-		auto it = storages_map_.find(std::type_index(typeid(T)));
+		auto it = storages_map_.find(TypeIndex(typeid(T)));
 		return it != storages_map_.end() ? static_cast<const ComponentStorage<T> *>(it->second) : nullptr;
 	}
 
-	std::vector<std::unique_ptr<IComponentStorage>> storages_;
-	std::unordered_map<std::type_index, IComponentStorage *> storages_map_;
-	std::vector<EntityId> free_list_;
+	Vector<UniquePtr<IComponentStorage>> storages_;
+	UnorderedMap<TypeIndex, IComponentStorage *> storages_map_;
+	Vector<EntityId> free_list_;
 	EntityId next_id_ = 1;
 
 	/// Reused for each<A,B> and each<A,B,C> (Option 2: packed iteration). Cleared and refilled per view.
-	std::vector<EntityId> view_cache_;
+	Vector<EntityId> view_cache_;
 };
 
 } // namespace growth

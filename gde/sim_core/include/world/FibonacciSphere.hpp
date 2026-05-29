@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../math/Vec3.hpp"
-#include <cstddef>
-#include <vector>
+#include "base/gateway/Cstddef.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
@@ -15,7 +15,7 @@ namespace growth {
 class FibonacciSphere {
 public:
 	/// Fill `out` with `n` points on the unit sphere (x,y,z), deterministic order. Clears `out` first.
-	static void fill(size_t n, std::vector<Vec3> &out);
+	static void fill(size_t n, Vector<Vec3> &out);
 };
 
 } // namespace growth

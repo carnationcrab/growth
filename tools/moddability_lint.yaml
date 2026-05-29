@@ -1,0 +1,113 @@
+# Moddability architecture linter configuration.
+# See docs/moddability.md and tools/lint_moddability.py
+
+suppress_comment: "moddability:ignore"
+
+rules:
+  godot_literal_res_path:
+    severity: error
+    description: "Do not hardcode res://godot or res://data paths in gameplay code; resolve via SimAPI or defs."
+    scan_dirs:
+      - godot/main
+      - godot/ui
+      - godot/world
+      - godot/debug
+      - godot/tools
+    extensions: [".gd", ".cs"]
+    pattern: '["'']res://godot/'
+    allow_files:
+      - godot/autoload/SimAPI.cs
+      - godot/autoload/sim/GrowthSimBackend.cs
+
+  godot_def_xml_parse:
+    severity: error
+    description: "Do not parse def XML in Godot; use SimAPI / DefDatabase."
+    scan_dirs:
+      - godot
+    extensions: [".gd", ".cs"]
+    patterns:
+      - 'FileAccess\.open\s*\([^)]*defs/'
+      - 'FileAccess\.open\s*\([^)]*data/core'
+      - '<\s*interactions\b'
+      - '<\s*buildings\b'
+    allow_files:
+      - godot/autoload/SimAPI.cs
+      - godot/autoload/sim/UiAssetEngine.cs
+      - godot/autoload/sim/PresentationSceneEngine.cs
+
+  godot_direct_growth_sim:
+    severity: error
+    description: "Only SimAPI autoload may reference GrowthSim directly."
+    scan_dirs:
+      - godot
+    extensions: [".gd", ".cs"]
+    patterns:
+      - 'ClassDB\.(ClassExists|Instantiate)\s*\(\s*["'']GrowthSim'
+      - 'GrowthSim\s*\('
+    allow_files:
+      - godot/autoload/SimAPI.cs
+      - godot/autoload/sim/GrowthSimBackend.cs
+
+  godot_boot_data_root:
+    severity: error
+    description: "Boot the sim with the data root (res://data/), not a single pack folder."
+    scan_dirs:
+      - godot
+    extensions: [".gd", ".cs"]
+    pattern: 'globalize_path\s*\(\s*["'']res://data/core'
+    allow_files: []
+
+  cpp_gde_no_def_xml:
+    severity: error
+    description: "Do not parse def XML in gde/src; use sim_core DefDatabase."
+    scan_dirs:
+      - gde/src
+    extensions: [".cpp", ".hpp"]
+    patterns:
+      - XMLParser
+      - 'defs/ui_assets\.xml'
+      - 'defs/.*\.xml'
+    allow_files: []
+
+  cpp_sim_core_xml_layer:
+    severity: error
+    description: "Def XML loading belongs in sim_core/src/data only."
+    scan_dirs:
+      - gde/sim_core/src
+    extensions: [".cpp", ".hpp"]
+    patterns:
+      - XMLParser
+      - 'defs/.*\.xml'
+    allow_files:
+      - gde/sim_core/src/data/DefDatabase.cpp
+      - gde/sim_core/src/data/XmlLite.cpp
+
+  # See .cursor/rules/growth-stdlib-wrappers.mdc and gde/sim_core/include/base/gateway/
+  cpp_sim_core_external_include:
+    severity: error
+    description: "Do not #include <...> external headers in sim_core outside include/base/gateway/; add or use a base/gateway/C*.hpp wrapper."
+    scan_dirs:
+      - gde/sim_core/include
+      - gde/sim_core/src
+    extensions: [".cpp", ".hpp"]
+    pattern: '#include\s*<[^>]+>'
+    allow_path_prefixes:
+      - gde/sim_core/include/base/gateway/
+
+  cpp_gde_src_external_include:
+    severity: error
+    description: "gde/src may include Godot/GDExtension headers only; use sim_core base/gateway/C*.hpp wrappers for stdlib and platform APIs."
+    scan_dirs:
+      - gde/src
+    extensions: [".cpp", ".hpp", ".h"]
+    pattern: '#include\s*<(?!godot_cpp/|gdextension_interface\.h)[^>]+>'
+    allow_files: []
+
+  cpp_gde_tools_external_include:
+    severity: error
+    description: "gde/tools must use sim_core base/gateway/C*.hpp wrappers; no direct #include <...> external headers."
+    scan_dirs:
+      - gde/tools
+    extensions: [".cpp", ".hpp"]
+    pattern: '#include\s*<[^>]+>'
+    allow_files: []

@@ -1,0 +1,17 @@
+// TEMPLATE: gde/GodotAdapter | CHECKLIST: SConstruct (gde/src/) · sim_api_gdextension.cpp
+#pragma once
+
+#include <godot_cpp/variant/dictionary.hpp>
+#include "api/{{ParsedFormStruct}}.hpp"
+#include <string>
+
+namespace godot {
+
+namespace growth_sim {
+
+/// Parse Godot form dictionary into platform-agnostic {{ParsedFormStruct}}.
+void {{parse_function}}(const Dictionary &form_dict, growth::{{ParsedFormStruct}} &out);
+
+} // namespace growth_sim
+
+} // namespace godot

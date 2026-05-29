@@ -1,0 +1,28 @@
+// TEMPLATE: world/StructWithFreeFunctions | CHECKLIST: templates/README.md § sim_core/world/StructWithFreeFunctions
+#pragma once
+
+#include "math/Vec3.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <vector>
+
+namespace growth {
+
+struct {{InputStruct}};
+
+/// {{BriefDescription}}
+struct {{StructName}} {
+	std::vector<Vec3> vertices;
+	std::vector<Vec3> normals;
+	std::vector<uint32_t> indices;
+};
+
+enum class {{EnumName}} {
+	{{VariantA}},
+	{{VariantB}}
+};
+
+void generate_{{snake_name}}_{{method_a}}(const {{InputStruct}} &input, {{StructName}} &out);
+void generate_{{snake_name}}_{{method_b}}(const {{InputStruct}} &input, {{StructName}} &out);
+
+} // namespace growth

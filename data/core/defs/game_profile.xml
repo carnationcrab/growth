@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<game_profile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../schemas/game_profile.xsd"
+              profile_id="default">
+  <presentation>
+    <entry_menu scene_id="world_gen_menu"/>
+    <world_gen_load_screen scene_id="world_gen_load_screen"/>
+    <world_view script_id="chunk_streaming"/>
+    <planet_preview scene_id="sphere_preview"/>
+  </presentation>
+  <world_gen pipeline_id="default_globe"/>
+</game_profile>

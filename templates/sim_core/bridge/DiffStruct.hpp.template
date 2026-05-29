@@ -1,0 +1,28 @@
+// TEMPLATE: bridge/DiffStruct | CHECKLIST: DiffConverter · SimAPI diff constants · Godot subscriber
+#pragma once
+
+#include "../world/WorldCoord.hpp"
+#include <cstdint>
+#include <variant>
+#include <vector>
+
+namespace growth {
+
+struct {{PayloadName}}Diff {
+	ChunkCoord coord;
+	std::vector<double> {{field_name}};
+};
+
+struct {{SecondPayload}}Diff {
+	ChunkCoord coord;
+};
+
+enum class DiffType { {{DiffA}}, {{DiffB}} };
+
+struct Diff {
+	DiffType type;
+	{{PayloadName}}Diff {{snake_payload_a}};
+	{{SecondPayload}}Diff {{snake_payload_b}};
+};
+
+} // namespace growth

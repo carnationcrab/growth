@@ -1,15 +1,15 @@
 #include "world/BowyerWatson.hpp"
-#include <algorithm>
-#include <cmath>
-#include <map>
-#include <utility>
-#include <vector>
+#include "base/gateway/Calgorithm.hpp"
+#include "base/gateway/Cmath.hpp"
+#include "base/gateway/Cmap.hpp"
+#include "base/gateway/Cutility.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
 namespace {
 
-using Edge = std::pair<size_t, size_t>;
+using Edge = Pair<size_t, size_t>;
 
 Edge ordered_edge(size_t a, size_t b) {
 	return a < b ? Edge{a, b} : Edge{b, a};
@@ -18,7 +18,7 @@ Edge ordered_edge(size_t a, size_t b) {
 void circumcircle(double ax, double ay, double bx, double by, double cx, double cy,
                   double& out_cx, double& out_cy, double& out_rsq) {
 	const double d = 2.0 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
-	if (std::fabs(d) < 1e-20) {
+	if (Cmath::abs(d) < 1e-20) {
 		out_rsq = -1.0;
 		return;
 	}
@@ -43,23 +43,23 @@ bool in_circle(double ax, double ay, double bx, double by, double cx, double cy,
 
 } // namespace
 
-void BowyerWatson::triangulate(const std::vector<double>& px,
-                               const std::vector<double>& py,
-                               std::vector<std::array<size_t, 3>>& triangles_out) {
+void BowyerWatson::triangulate(const Vector<double>& px,
+                               const Vector<double>& py,
+                               Vector<Array<size_t, 3>>& triangles_out) {
 	triangles_out.clear();
 	const size_t n = px.size();
 	if (n != py.size() || n < 3) return;
 
 	double min_x = px[0], max_x = px[0], min_y = py[0], max_y = py[0];
 	for (size_t i = 1; i < n; ++i) {
-		min_x = std::min(min_x, px[i]);
-		max_x = std::max(max_x, px[i]);
-		min_y = std::min(min_y, py[i]);
-		max_y = std::max(max_y, py[i]);
+		min_x = Calgorithm::min(min_x, px[i]);
+		max_x = Calgorithm::max(max_x, px[i]);
+		min_y = Calgorithm::min(min_y, py[i]);
+		max_y = Calgorithm::max(max_y, py[i]);
 	}
 	const double dx = max_x - min_x, dy = max_y - min_y;
-	const double margin = std::max(1.0, 0.2 * std::max(dx, dy));
-	const double L = std::max(dx, dy) + 2.0 * margin;
+	const double margin = Calgorithm::max(1.0, 0.2 * Calgorithm::max(dx, dy));
+	const double L = Calgorithm::max(dx, dy) + 2.0 * margin;
 
 	const size_t si0 = n, si1 = n + 1, si2 = n + 2;
 	const double sx0 = min_x - margin;
@@ -69,7 +69,7 @@ void BowyerWatson::triangulate(const std::vector<double>& px,
 	const double sx2 = min_x - margin + L;
 	const double sy2 = min_y - margin + 2.0 * L;
 
-	std::vector<std::array<size_t, 3>> tri;
+	Vector<Array<size_t, 3>> tri;
 	tri.push_back({{si0, si1, si2}});
 
 	auto get_x = [&](size_t i) -> double {
@@ -87,8 +87,8 @@ void BowyerWatson::triangulate(const std::vector<double>& px,
 
 	for (size_t p = 0; p < n; ++p) {
 		const double pxp = px[p], pyp = py[p];
-		std::map<Edge, int> edge_count;
-		std::vector<std::array<size_t, 3>> new_tri;
+		Map<Edge, int> edge_count;
+		Vector<Array<size_t, 3>> new_tri;
 
 		for (const auto& t : tri) {
 			size_t i = t[0], j = t[1], k = t[2];
@@ -109,7 +109,7 @@ void BowyerWatson::triangulate(const std::vector<double>& px,
 			const Edge& e = kv.first;
 			new_tri.push_back({{e.first, e.second, p}});
 		}
-		tri = std::move(new_tri);
+		tri = Cutility::move(new_tri);
 	}
 
 	for (const auto& t : tri) {

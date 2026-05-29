@@ -5,20 +5,31 @@
 #include "RegionMoisture.hpp"
 #include "RiverFlow.hpp"
 #include "SphereHalfEdgeMesh.hpp"
+#include "SphereTopology.hpp"
 #include "TectonicPlates.hpp"
 #include "TriangleValues.hpp"
-#include "VoronoiSphere.hpp"
+#include "../util/CsrGraph.hpp"
 
 namespace growth {
 
-/// Full globe result: topology, half-edge mesh, plates, plate properties, per-region and per-triangle values, rivers.
-/// Produced by PlanetGlobeGenerator.
+/// Full globe result that flows through every world-gen stage.
+///
+/// Canonical fields (post-refactor):
+///   topology              - unit-sphere sites + Delaunay triangles
+///   mesh                  - half-edge structure derived from topology
+///   region_neighbours     - CSR adjacency over regions; built once, reused by every stage
+///   region_triangle_rings - CSR mapping each region to its surrounding triangle indices
+///                           (the "Voronoi cell" — replaces the old VoronoiSphere::cells)
+///
 struct PlanetGlobe {
-	VoronoiSphere voronoi;
+	SphereTopology topology;
 	SphereHalfEdgeMesh mesh;
+	CsrGraph region_neighbours;
+	CsrGraph region_triangle_rings;
 	TectonicPlates plates;
 	PlateProperties plate_properties;
 	RegionElevation region_elevation;
+	RegionElevation region_elevation_pre_erosion;
 	RegionMoisture region_moisture;
 	TriangleValues triangle_values;
 	RiverFlow river_flow;

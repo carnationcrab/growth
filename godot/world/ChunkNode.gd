@@ -40,7 +40,6 @@ func apply_height_grid(height_samples: Array, chunk_coord: Vector2i) -> void:
 func _build_flat_mesh(heights: PackedFloat32Array, side: int) -> ArrayMesh:
 	var st: SurfaceTool = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var half: float = (side - 1) * 0.5 * CELL_SIZE
 	var origin_x: float = _chunk_coord.x * CHUNK_SIZE_CELLS * CELL_SIZE
 	var origin_z: float = _chunk_coord.y * CHUNK_SIZE_CELLS * CELL_SIZE
 	for row in range(side - 1):

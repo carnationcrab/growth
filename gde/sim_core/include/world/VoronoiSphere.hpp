@@ -1,9 +1,9 @@
 #pragma once
 
 #include "math/Vec3.hpp"
-#include <array>
-#include <cstddef>
-#include <vector>
+#include "base/gateway/Carray.hpp"
+#include "base/gateway/Cstddef.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
@@ -12,13 +12,13 @@ namespace growth {
 /// Sites are Fibonacci points plus optionally one cap vertex (centroid of boundary) used to fill the hole.
 struct VoronoiSphere {
 	/// Seed points on the unit sphere (Fibonacci), plus optional cap vertex at end when hole is filled.
-	std::vector<Vec3> sites;
+	Vector<Vec3> sites;
 	/// Delaunay triangles: each is three indices into sites.
-	std::vector<std::array<size_t, 3>> triangles;
+	Vector<Array<size_t, 3>> triangles;
 	/// Voronoi vertices: one circumcenter (on unit sphere) per triangle; index i = circumcenter of triangles[i].
-	std::vector<Vec3> circumcenters;
+	Vector<Vec3> circumcenters;
 	/// Per-site Voronoi cells: cells[site_idx] = ordered list of circumcenter indices (into circumcenters) forming the cell polygon.
-	std::vector<std::vector<size_t>> cells;
+	Vector<Vector<size_t>> cells;
 };
 
 } // namespace growth

@@ -1,0 +1,22 @@
+# Install: pip install pre-commit pyyaml && pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: moddability-lint
+        name: moddability architecture lint
+        entry: python tools/lint_moddability.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: sconstruct-sources-lint
+        name: SConstruct sources lint
+        entry: python tools/lint_sconstruct_sources.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: worldgen-bench-sc-e2
+        name: worldgen bench SC-E2 inward terrain tris (OW-E12)
+        entry: python tools/run_worldgen_bench_gate.py
+        language: system
+        pass_filenames: false
+        stages: [manual]

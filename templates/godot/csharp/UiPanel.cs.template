@@ -1,0 +1,64 @@
+// TEMPLATE: godot/UiPanel | CHECKLIST: scene_registry.xml · canonical: SpherePreviewOverlay.tscn
+using Godot;
+using System.Collections.Generic;
+
+/// <summary>
+/// {{BriefDescription}} Uses SimAPI UI asset cache (panel_card).
+/// Expects parent hierarchy: {{ParentScene}} → CanvasLayer → {{HostNode}}.
+/// </summary>
+public partial class {{ClassName}} : Control
+{
+	private const int ViewportEdgePadding = 16;
+
+	private static readonly Dictionary<string, string> {{MapName}} = new()
+	{
+		{ "{{KeyA}}", "{{NodePathA}}" },
+		{ "{{KeyB}}", "{{NodePathB}}" },
+	};
+
+	public override void _Ready()
+	{
+		PinToTopLeft();
+		ApplyUiAssets();
+		ConnectControls();
+		CallDeferred(MethodName.FitToContent);
+	}
+
+	private void PinToTopLeft()
+	{
+		SetAnchorsPreset(LayoutPreset.TopLeft);
+		Position = new Vector2(ViewportEdgePadding, ViewportEdgePadding);
+		GrowHorizontal = GrowDirection.Begin;
+		GrowVertical = GrowDirection.Begin;
+	}
+
+	private void FitToContent()
+	{
+		var card = GetNodeOrNull<PanelContainer>("MarginContainer/Card");
+		if (card == null)
+			return;
+		ResetSize();
+		Size = GetCombinedMinimumSize();
+	}
+
+	private void ApplyUiAssets()
+	{
+		var card = GetNodeOrNull<PanelContainer>("MarginContainer/Card");
+		if (card == null)
+			return;
+		var simApi = GetNodeOrNull<SimAPI>("/root/SimAPI");
+		var tex    = simApi?.GetUiAssetTexture("panel_card");
+		if (tex == null)
+			return;
+		var style = new StyleBoxTexture { Texture = tex };
+		card.AddThemeStyleboxOverride("panel", style);
+	}
+
+	private void ConnectControls()
+	{
+		var vbox = GetNodeOrNull<VBoxContainer>("MarginContainer/Card/CardPadding/{{VBoxName}}");
+		if (vbox == null)
+			return;
+		// wire signals via GetNodeOrNull and +=
+	}
+}

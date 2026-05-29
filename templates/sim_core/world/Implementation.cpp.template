@@ -1,0 +1,8 @@
+// TEMPLATE: world/Implementation | CHECKLIST: SConstruct · PlanetGlobePipeline (header must exist)
+#include "world/{{Module}}.hpp"
+
+namespace growth {
+
+// {{BriefDescription}}
+
+} // namespace growth

@@ -1,0 +1,19 @@
+# TEMPLATE: godot/WorldNode3D | CHECKLIST: .tscn · canonical: world/ChunkNode.gd
+extends Node3D
+## {{BriefDescription}}
+
+const {{CONST_NAME}} := {{value}}
+
+var _{{private_field}}: {{Type}}
+
+
+func _ready() -> void:
+	_{{private_field}} = get_node_or_null("{{ChildNode}}") as {{Type}}
+	if _{{private_field}} == null:
+		push_warning("{{ClassName}}: {{ChildNode}} not found.")
+
+
+func {{public_method}}({{args}}) -> void:
+	if _{{private_field}} == null:
+		return
+	# apply sim data to mesh / transform

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "PlanetGenome.hpp"
-#include <cstdint>
+#include "base/gateway/Cstdint.hpp"
 
 namespace growth {
 

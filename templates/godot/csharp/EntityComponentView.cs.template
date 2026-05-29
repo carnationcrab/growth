@@ -1,0 +1,16 @@
+// TEMPLATE: godot/EntityComponentView | CHECKLIST: attach to entity · no GrowthSim calls
+using Godot;
+
+/// <summary>
+/// View component for {{EntityKind}}; reads sim state via parent or signals, no direct GDExtension calls.
+/// </summary>
+public partial class {{ClassName}} : Node
+{
+	public override void _Ready()
+	{
+	}
+
+	public override void _Process(double delta)
+	{
+	}
+}

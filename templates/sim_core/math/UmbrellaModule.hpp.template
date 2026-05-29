@@ -1,0 +1,7 @@
+// TEMPLATE: math/UmbrellaModule | CHECKLIST: canonical: math/Math.hpp (includes only)
+#pragma once
+
+#include "Scalar.hpp"
+#include "Vector.hpp"
+#include "Vec2.hpp"
+#include "Vec3.hpp"

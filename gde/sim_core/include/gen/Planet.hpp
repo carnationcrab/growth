@@ -1,7 +1,7 @@
 #pragma once
 
 #include "PlanetGenome.hpp"
-#include <cmath>
+#include "base/gateway/Cmath.hpp"
 
 namespace growth {
 
@@ -40,38 +40,38 @@ public:
 
 	/// Escape velocity (m/s).
 	double v_escape() const {
-		return std::sqrt(2.0 * planet_constants::G * g_.M_p / g_.R_p);
+		return Cmath::sqrt(2.0 * planet_constants::G * g_.M_p / g_.R_p);
 	}
 
 	/// Orbital period (s). Uses Kepler: P = 2*pi*sqrt(a^3 / (G*M_star)) with M_p neglected.
 	double P_orb() const {
 		double mu = planet_constants::G * (mass_star_approx() + g_.M_p);
-		return planet_constants::two_pi * std::sqrt(g_.a * g_.a * g_.a / mu);
+		return planet_constants::two_pi * Cmath::sqrt(g_.a * g_.a * g_.a / mu);
 	}
 
 	/// Approximate stellar mass (kg) from L_star via rough mass–luminosity (L ~ M^3.5 for main sequence).
 	double mass_star_approx() const {
 		constexpr double L_sun = 3.828e26;
 		double x = g_.L_star / L_sun;
-		return 1.9885e30 * std::pow(x, 1.0 / 3.5);  // Sun mass
+		return 1.9885e30 * Cmath::pow(x, 1.0 / 3.5);  // Sun mass
 	}
 
 	/// Time-averaged insolation (W/m^2) at top of atmosphere. (1-e^2)^(-1/2) for eccentricity.
 	double insolation() const {
 		double flux = g_.L_star / (4.0 * planet_constants::pi * g_.a * g_.a);
-		return flux / std::sqrt(1.0 - g_.e * g_.e);
+		return flux / Cmath::sqrt(1.0 - g_.e * g_.e);
 	}
 
 	/// Equilibrium temperature (K). Uses stored S_eff when set, else insolation from L_star/a.
 	double T_eq() const {
 		constexpr double S_earth = 1361.0;  // W/m^2
 		double S = (g_.S_eff > 0.0) ? (g_.S_eff * S_earth) : insolation();
-		return std::pow(S * (1.0 - g_.albedo) / (4.0 * planet_constants::sigma_sb), 0.25);
+		return Cmath::pow(S * (1.0 - g_.albedo) / (4.0 * planet_constants::sigma_sb), 0.25);
 	}
 
 	/// Simple surface temperature estimate (K): T_eq scaled by greenhouse factor.
 	double T_surf_estimate() const {
-		return T_eq() * std::sqrt(std::sqrt(g_.greenhouse_factor));
+		return T_eq() * Cmath::sqrt(Cmath::sqrt(g_.greenhouse_factor));
 	}
 
 	/// Scale height (m): H = R*T / (mu*g).

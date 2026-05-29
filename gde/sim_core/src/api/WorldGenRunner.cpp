@@ -3,18 +3,18 @@
 #include "gen/SeedGenerator.hpp"
 #include "gen/PlanetBlueprint.hpp"
 #include "gen/PlanetGenerator.hpp"
-#include <algorithm>
-#include <cmath>
+#include "base/gateway/Calgorithm.hpp"
+#include "base/gateway/Cmath.hpp"
 
 namespace growth {
 
 namespace {
 	void apply_form_to_genome(PlanetGenome &g, double form_temperature, double form_precipitation) {
 		double p = form_precipitation / 200.0;
-		p = std::max(0.0, std::min(1.0, p));
+		p = Calgorithm::max(0.0, Calgorithm::min(1.0, p));
 		g.precipitation = 0.1 + 0.9 * p;
 		double t = form_temperature / 200.0;
-		t = std::max(0.0, std::min(1.0, t));
+		t = Calgorithm::max(0.0, Calgorithm::min(1.0, t));
 		g.S_eff *= (0.7 + 0.6 * t);
 	}
 }

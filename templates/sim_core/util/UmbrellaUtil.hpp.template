@@ -1,0 +1,7 @@
+// TEMPLATE: util/UmbrellaUtil | CHECKLIST: includes only — canonical: util/Util.hpp
+#pragma once
+
+#include "Memory.hpp"
+#include "PerformanceLogger.hpp"
+#include "Random.hpp"
+#include "String.hpp"

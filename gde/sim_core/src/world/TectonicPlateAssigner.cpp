@@ -1,104 +1,66 @@
 #include "world/TectonicPlateAssigner.hpp"
-#include "world/VoronoiSphere.hpp"
+#include "util/ParallelBfs.hpp"
 #include "util/Random.hpp"
-#include <cstddef>
-#include <iostream>
-#include <set>
-#include <unordered_set>
-#include <vector>
+#include "base/gateway/Calgorithm.hpp"
+#include "base/gateway/Cstddef.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
 namespace {
 
-	constexpr uint64_t k_tectonic_stream = 0x7e4a9c2b1d5f8e3aULL;
-
-	void build_site_neighbours(const VoronoiSphere &sphere, std::vector<std::vector<size_t>> &neighbours_out) {
-		const size_t n = sphere.sites.size();
-		neighbours_out.assign(n, std::vector<size_t>());
-		std::vector<std::unordered_set<size_t>> seen(n);
-		for (const auto &t : sphere.triangles) {
-			const size_t a = t[0], b = t[1], c = t[2];
-			if (a >= n || b >= n || c >= n) continue;
-			auto add = [&](size_t u, size_t v) {
-				if (u != v && seen[u].insert(v).second)
-					neighbours_out[u].push_back(v);
-			};
-			add(a, b);
-			add(a, c);
-			add(b, a);
-			add(b, c);
-			add(c, a);
-			add(c, b);
-		}
-	}
+constexpr uint64_t k_tectonic_stream = 0x7e4a9c2b1d5f8e3aULL;
 
 } // namespace
 
-void TectonicPlateAssigner::assign(const VoronoiSphere &voronoi_sphere, const WorldSeed &world_seed, size_t num_plates, TectonicPlates &tectonic_out) const {
-	const size_t num_regions = voronoi_sphere.sites.size();
-	std::cerr << "[TectonicPlateAssigner] assign: num_regions=" << num_regions << " requested_plates=" << num_plates << "\n";
-	tectonic_out.region_to_plate.clear();
-	tectonic_out.num_plates = 0;
-	if (num_regions == 0) {
-		std::cerr << "[TectonicPlateAssigner] skip: no regions\n";
+void TectonicPlateAssigner::assign(const SphereTopology &topology,
+                                   const CsrGraph &region_neighbours,
+                                   const WorldSeed &world_seed,
+                                   size_t num_plate_regions,
+                                   TectonicPlates &out) const {
+	const size_t num_regions = topology.sites.size();
+	out.region_to_plate.clear();
+	out.num_plates = 0;
+	if (num_regions == 0)
 		return;
-	}
 
-	// Clamp num_plates to [1, num_regions]
-	if (num_plates < 1u) num_plates = 1;
-	if (num_plates > num_regions) num_plates = num_regions;
+	if (num_plate_regions < 1u)
+		num_plate_regions = 1u;
+	if (num_plate_regions > num_regions)
+		num_plate_regions = num_regions;
 
+	// Pick num_plate_regions distinct seed regions deterministically from the world seed.
 	random::RNG rng(world_seed.value ^ k_tectonic_stream);
-
-	// 1) Pick num_plates distinct region indices as plate seeds (plate id = index into this list; seed region gets that plate id).
-	std::set<size_t> chosen_r;
-	while (chosen_r.size() < num_plates) {
-		size_t r = static_cast<size_t>(rng.next_int(0, static_cast<int64_t>(num_regions) - 1));
-		chosen_r.insert(r);
-	}
-	std::vector<size_t> plate_seeds(chosen_r.begin(), chosen_r.end());
-
-	// 2) region_to_plate[site] = plate id (0 .. num_plates-1), or -1 unassigned.
-	tectonic_out.region_to_plate.assign(num_regions, -1);
-	for (size_t i = 0; i < plate_seeds.size(); ++i)
-		tectonic_out.region_to_plate[plate_seeds[i]] = static_cast<int32_t>(i);
-
-	// 3) Build site adjacency from Delaunay triangles.
-	std::vector<std::vector<size_t>> site_neighbours;
-	build_site_neighbours(voronoi_sphere, site_neighbours);
-
-	// 4) Random fill: queue of region indices; at each step pick random element from current queue tail, expand to unassigned neighbours.
-	std::vector<size_t> queue;
-	queue.reserve(num_regions);
-	for (size_t r : plate_seeds)
-		queue.push_back(r);
-
-	for (size_t queue_out = 0; queue_out < queue.size(); ++queue_out) {
-		// Random index in [queue_out, queue.size())
-		const size_t len = queue.size() - queue_out;
-		if (len == 0) break;
-		size_t pos = queue_out + static_cast<size_t>(rng.next_int(0, static_cast<int64_t>(len) - 1));
-		size_t current_r = queue[pos];
-		queue[pos] = queue[queue_out];
-
-		const int32_t plate_id = tectonic_out.region_to_plate[current_r];
-		if (plate_id < 0) continue;
-
-		for (size_t neighbor_r : site_neighbours[current_r]) {
-			if (neighbor_r >= num_regions) continue;
-			if (tectonic_out.region_to_plate[neighbor_r] == -1) {
-				tectonic_out.region_to_plate[neighbor_r] = plate_id;
-				queue.push_back(neighbor_r);
-			}
-		}
+	Vector<U32> chosen;
+	chosen.reserve(num_plate_regions);
+	Vector<bool> picked(num_regions, false);
+	while (chosen.size() < num_plate_regions) {
+		const size_t r = static_cast<size_t>(rng.next_int(0, static_cast<int64_t>(num_regions) - 1));
+		if (picked[r])
+			continue;
+		picked[r] = true;
+		chosen.push_back(static_cast<U32>(r));
 	}
 
-	tectonic_out.num_plates = num_plates;
-	size_t assigned = 0;
-	for (int32_t p : tectonic_out.region_to_plate)
-		if (p >= 0) ++assigned;
-	std::cerr << "[TectonicPlateAssigner] done: num_plates=" << tectonic_out.num_plates << " regions_assigned=" << assigned << "/" << num_regions << "\n";
+	// Canonical seed order: sort by region id so the (sources, labels) pair fed to bfs_label is
+	// independent of the order produced by the RNG. plate_id = position in the sorted list.
+	Calgorithm::sort(chosen.begin(), chosen.end());
+
+	Vector<U32> labels(chosen.size());
+	for (size_t i = 0; i < chosen.size(); ++i)
+		labels[i] = static_cast<U32>(i);
+
+	Vector<U32> region_labels;
+	parallel::bfs_label(region_neighbours, chosen, labels, region_labels);
+
+	out.region_to_plate.assign(num_regions, -1);
+	for (size_t r = 0; r < num_regions; ++r) {
+		const U32 lab = (r < region_labels.size()) ? region_labels[r] : parallel::k_bfs_unlabeled;
+		if (lab != parallel::k_bfs_unlabeled)
+			out.region_to_plate[r] = static_cast<int32_t>(lab);
+	}
+	out.plate_seed_region = chosen;
+	out.num_plates          = num_plate_regions;
 }
 
 } // namespace growth

@@ -1,14 +1,12 @@
 #include "util/Random.hpp"
-#include <cstdint>
-#include <ctime>
+#include "base/gateway/Cstdint.hpp"
+#include "base/gateway/Cctime.hpp"
+#include "base/gateway/Cwin.hpp"
+#include "base/gateway/Cposix.hpp"
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#include <wincrypt.h>
 #pragma comment(lib, "advapi32.lib")
 #else
-#include <fcntl.h>
-#include <unistd.h>
 #endif
 
 namespace growth {

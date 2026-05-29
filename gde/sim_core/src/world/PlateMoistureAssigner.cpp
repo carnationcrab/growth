@@ -1,8 +1,8 @@
 #include "world/PlateMoistureAssigner.hpp"
 #include "util/Random.hpp"
-#include <algorithm>
-#include <cmath>
-#include <cstddef>
+#include "base/gateway/Calgorithm.hpp"
+#include "base/gateway/Cmath.hpp"
+#include "base/gateway/Cstddef.hpp"
 
 namespace growth {
 
@@ -29,7 +29,7 @@ void PlateMoistureAssigner::assign(const TectonicPlates &tectonic_plates, const 
 	const float precip_mult = 0.5f + 0.5f * precipitation_01;
 	for (size_t p = 0; p < num_plates; ++p) {
 		float m = out.plate_moisture[p] * temp_mult * precip_mult;
-		out.plate_moisture[p] = std::max(0.0f, std::min(1.0f, m));
+		out.plate_moisture[p] = Calgorithm::max(0.0f, Calgorithm::min(1.0f, m));
 	}
 }
 

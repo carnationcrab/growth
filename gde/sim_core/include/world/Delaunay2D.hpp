@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../math/Vec2.hpp"
-#include <array>
-#include <cstddef>
-#include <vector>
+#include "base/gateway/Carray.hpp"
+#include "base/gateway/Cstddef.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
@@ -11,7 +11,7 @@ namespace growth {
 class Delaunay2D {
 public:
 	/// Triangulate points; append triangles (each three indices into points) to triangles_out.
-	static void triangulate(const std::vector<Vec2>& points, std::vector<std::array<size_t, 3>>& triangles_out);
+	static void triangulate(const Vector<Vec2>& points, Vector<Array<size_t, 3>>& triangles_out);
 };
 
 } // namespace growth

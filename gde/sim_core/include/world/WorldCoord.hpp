@@ -1,6 +1,6 @@
+#include "base/gateway/Cstdint.hpp"
 #pragma once
 
-#include <cstdint>
 
 namespace growth {
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scene_registry xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:noNamespaceSchemaLocation="../schemas/scene_registry.xsd">
+  <scene scene_id="world_gen_menu" path="res://godot/ui/menus/worldGenMenu.tscn"/>
+  <scene scene_id="world_gen_load_screen" path="res://godot/ui/menus/worldGenLoadScreen.tscn"/>
+  <scene scene_id="sphere_preview" path="res://godot/debug/SpherePreview.tscn"/>
+  <scene scene_id="sphere_preview_overlay" path="res://godot/ui/panels/SpherePreviewOverlay.tscn"/>
+  <scene scene_id="chunk_node" path="res://godot/world/ChunkNode.tscn"/>
+  <script script_id="chunk_streaming" path="res://godot/world/WorldViewManager.cs"/>
+</scene_registry>

@@ -4,15 +4,14 @@
 
 [node name="SpherePreviewOverlay" type="Control"]
 layout_mode = 3
-anchors_preset = 1
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 0.0
-offset_top = 88.0
-offset_right = 232.0
-offset_bottom = 228.0
-grow_horizontal = 0
-grow_vertical = 0
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 72.0
+offset_right = 272.0
+offset_bottom = -8.0
+grow_vertical = 2
+mouse_filter = 1
 script = ExtResource("1_script")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
@@ -22,105 +21,159 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
 
 [node name="Card" type="PanelContainer" parent="MarginContainer"]
-custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
+size_flags_vertical = 3
 
 [node name="CardPadding" type="MarginContainer" parent="MarginContainer/Card"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+size_flags_vertical = 3
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="LayersVBox" type="VBoxContainer" parent="MarginContainer/Card/CardPadding"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/Card/CardPadding"]
 layout_mode = 2
-theme_override_constants/separation = 8
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="LayersLabel" type="Label" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="LayersVBox" type="VBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="ControlsHint" type="Label" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.82, 0.88, 1)
+theme_override_font_sizes/font_size = 11
+text = "Arrows / WASD: orbit
+Shift + Up/Down: zoom
+(Ctrl releases UI focus)"
+autowrap_mode = 3
+
+[node name="LayersLabel" type="Label" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 text = "Layers"
 
-[node name="SphereRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="SphereRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 
-[node name="SphereCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/SphereRow"]
+[node name="SphereCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/SphereRow"]
 layout_mode = 2
 button_pressed = true
 text = "Sphere"
 
-[node name="PointsRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="PointsRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 
-[node name="PointsCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/PointsRow"]
+[node name="PointsCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/PointsRow"]
 layout_mode = 2
 button_pressed = true
 text = "Fibonacci points"
 
-[node name="DelaunayRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="DelaunayRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 
-[node name="DelaunayCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/DelaunayRow"]
+[node name="DelaunayCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/DelaunayRow"]
 layout_mode = 2
 button_pressed = true
 text = "Delaunay"
 
-[node name="CircumcentersRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="CircumcentersRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 
-[node name="CircumcentersCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/CircumcentersRow"]
+[node name="CircumcentersCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/CircumcentersRow"]
 layout_mode = 2
 button_pressed = true
 text = "Circumcenters"
 
-[node name="VoronoiRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="VoronoiRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 
-[node name="VoronoiCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/VoronoiRow"]
+[node name="VoronoiCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/VoronoiRow"]
 layout_mode = 2
 button_pressed = true
 text = "Voronoi regions"
 
-[node name="TectonicPlatesRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="TectonicPlatesRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 
-[node name="TectonicPlatesCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/TectonicPlatesRow"]
+[node name="TectonicPlatesCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/TectonicPlatesRow"]
 layout_mode = 2
 button_pressed = true
 text = "Tectonic plates"
 
-[node name="ElevationRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="ElevationRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 
-[node name="ElevationCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/ElevationRow"]
-layout_mode = 2
-button_pressed = true
-text = "Elevation"
-
-[node name="MoistureRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
-layout_mode = 2
-
-[node name="MoistureCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/MoistureRow"]
+[node name="ElevationCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/ElevationRow"]
 layout_mode = 2
 button_pressed = true
-text = "Moisture"
+text = "Elevation (Voronoi)"
 
-[node name="PlateLabelsRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="MoistureRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 
-[node name="PlateLabelsCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/PlateLabelsRow"]
+[node name="MoistureCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/MoistureRow"]
+layout_mode = 2
+button_pressed = true
+text = "Moisture (Voronoi)"
+
+[node name="PlateLabelsRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
+layout_mode = 2
+
+[node name="PlateLabelsCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/PlateLabelsRow"]
 layout_mode = 2
 button_pressed = true
 text = "Plate labels (E / M)"
 
-[node name="PlanetTerrainMeshRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/LayersVBox"]
+[node name="TerrainTemperatureRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
 layout_mode = 2
 
-[node name="PlanetTerrainMeshCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/LayersVBox/PlanetTerrainMeshRow"]
+[node name="TerrainTemperatureCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/TerrainTemperatureRow"]
 layout_mode = 2
-text = "Planet terrain mesh"
+text = "Temperature (heatmap)"
+
+[node name="TerrainBiomeRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
+layout_mode = 2
+
+[node name="TerrainBiomeCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/TerrainBiomeRow"]
+layout_mode = 2
+text = "Biome (heatmap)"
+
+[node name="PlanetTerrainMeshSection" type="VBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PlanetTerrainMeshHeaderRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/PlanetTerrainMeshSection"]
+layout_mode = 2
+
+[node name="PlanetTerrainMeshExpandBtn" type="Button" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/PlanetTerrainMeshSection/PlanetTerrainMeshHeaderRow"]
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+focus_mode = 0
+flat = true
+text = "▸"
+
+[node name="PlanetTerrainMeshCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/PlanetTerrainMeshSection/PlanetTerrainMeshHeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Terrain mesh (final)"
+
+[node name="PlanetTerrainMeshSubVBox" type="VBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/PlanetTerrainMeshSection"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="RiversMapRow" type="HBoxContainer" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/PlanetTerrainMeshSection/PlanetTerrainMeshSubVBox"]
+layout_mode = 2
+
+[node name="RiversMapCheck" type="CheckBox" parent="MarginContainer/Card/CardPadding/ScrollContainer/LayersVBox/PlanetTerrainMeshSection/PlanetTerrainMeshSubVBox/RiversMapRow"]
+layout_mode = 2
+text = "Rivers (flow lines)"

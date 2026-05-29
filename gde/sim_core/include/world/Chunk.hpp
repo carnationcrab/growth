@@ -1,8 +1,8 @@
 #pragma once
 
 #include "WorldCoord.hpp"
-#include <vector>
-#include <cstddef>
+#include "base/gateway/Cvector.hpp"
+#include "base/gateway/Cstddef.hpp"
 
 namespace growth {
 
@@ -16,13 +16,13 @@ public:
 
 	const float              *height_data() const { return height_samples_.data(); }
 	float                    *height_data() { return height_samples_.data(); }
-	const std::vector<float> &height_samples() const { return height_samples_; }
-	std::vector<float>       &height_samples() { return height_samples_; }
+	const Vector<float> &height_samples() const { return height_samples_; }
+	Vector<float>       &height_samples() { return height_samples_; }
 
 	static size_t             height_sample_count() { return CHUNK_HEIGHT_SAMPLES; }
 
 private:
-	std::vector<float> height_samples_;
+	Vector<float> height_samples_;
 };
 
 } // namespace growth

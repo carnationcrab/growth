@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Diff.hpp"
-#include <deque>
-#include <cstddef>
+#include "base/gateway/Cdeque.hpp"
+#include "base/gateway/Cstddef.hpp"
 
 namespace growth {
 
@@ -14,7 +14,7 @@ public:
 	void clear();
 
 private:
-	std::deque<Diff> queue_;
+	Deque<Diff> queue_;
 };
 
 } // namespace growth

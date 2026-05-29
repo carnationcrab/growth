@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TEMPLATE: data/core/defs/DefFile | CHECKLIST: XSD · data/core/manifest.xml · DefDatabase merge -->
+<{{root_element}} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:noNamespaceSchemaLocation="../schemas/{{schema_file}}.xsd">
+  <{{child_element}} {{id_attr}}="{{example_id}}" name="{{Example Name}}">
+    <!-- attributes and children per {{schema_file}}.xsd -->
+  </{{child_element}}>
+</{{root_element}}>

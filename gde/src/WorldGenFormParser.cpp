@@ -15,10 +15,10 @@ void parse_world_gen_form(const Dictionary &form_dict, growth::ParsedWorldGenFor
 	out.planet_preset = "Earthlike";
 	out.temperature = 100.0;
 	out.precipitation = 100.0;
-	out.voronoi_sites = 256;
+	out.voronoi_sites = 16384;
 	out.jitter = 0.0;
-	out.num_plate_regions = 25;
-	out.use_planet_terrain_mesh = false;
+	out.num_plate_regions = 32;
+	out.use_planet_terrain_mesh = true;
 	if (form_dict.size() == 0) return;
 
 	Array keys = form_dict.keys();
@@ -26,13 +26,13 @@ void parse_world_gen_form(const Dictionary &form_dict, growth::ParsedWorldGenFor
 		Variant k = keys[i];
 		if (k.get_type() != Variant::STRING) continue;
 		String key_str = k;
-		std::string key(key_str.utf8().get_data());
+		growth::String key(key_str.utf8().get_data());
 		Variant v = form_dict.get(k, Variant());
 
 		if (key == "planet_preset" && v.get_type() == Variant::STRING) {
 			String s = v.operator String();
 			if (!s.is_empty())
-				out.planet_preset = std::string(s.utf8().get_data());
+				out.planet_preset = growth::String(s.utf8().get_data());
 			continue;
 		}
 		if (key == "temperature" && (v.get_type() == Variant::INT || v.get_type() == Variant::FLOAT)) {
@@ -46,7 +46,7 @@ void parse_world_gen_form(const Dictionary &form_dict, growth::ParsedWorldGenFor
 		if (key == "voronoi_sites" && (v.get_type() == Variant::INT || v.get_type() == Variant::FLOAT)) {
 			int64_t n = v.get_type() == Variant::FLOAT ? static_cast<int64_t>(v.operator double()) : v.operator int64_t();
 			if (n < 32) n = 32;
-			if (n > 10000) n = 10000;
+			if (n > 500000) n = 500000;
 			out.voronoi_sites = static_cast<size_t>(n);
 			continue;
 		}
@@ -66,6 +66,22 @@ void parse_world_gen_form(const Dictionary &form_dict, growth::ParsedWorldGenFor
 		}
 		if (key == "use_planet_terrain_mesh" || key == "planet_terrain_mesh" || key == "use_final_mesh" || key == "final_mesh") {
 			out.use_planet_terrain_mesh = v.operator bool();
+			continue;
+		}
+		if (key == "sim_voronoi_sites" && (v.get_type() == Variant::INT || v.get_type() == Variant::FLOAT)) {
+			int64_t n = v.get_type() == Variant::FLOAT ? static_cast<int64_t>(v.operator double()) : v.operator int64_t();
+			if (n < 0) n = 0;
+			out.sim_voronoi_sites = static_cast<size_t>(n);
+			continue;
+		}
+		if (key == "world_gen_mode" && v.get_type() == Variant::STRING) {
+			String s = v.operator String();
+			if (!s.is_empty())
+				out.world_gen_mode = growth::String(s.utf8().get_data());
+			continue;
+		}
+		if (key == "use_simd") {
+			out.use_simd = v.operator bool();
 			continue;
 		}
 

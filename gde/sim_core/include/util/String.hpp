@@ -1,14 +1,14 @@
+#include "base/gateway/Cstdint.hpp"
+#include "base/gateway/Cstring.hpp"
 #pragma once
 
-#include <cstdint>
-#include <string>
 
 namespace growth {
 
 namespace string_util {
 
 	/// Deterministic 64-bit hash of a string (FNV-1a style).
-	inline uint64_t hash(const std::string &s) {
+	inline uint64_t hash(const String &s) {
 		uint64_t h = 0xcbf29ce484222325ULL;
 		for (unsigned char c : s) {
 			h ^= static_cast<uint64_t>(c);

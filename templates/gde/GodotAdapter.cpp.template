@@ -1,0 +1,38 @@
+// TEMPLATE: gde/GodotAdapter | CHECKLIST: add src/{{AdapterName}}.cpp to SConstruct
+// {{BriefDescription}}
+#include "{{AdapterName}}.hpp"
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/variant.hpp>
+
+namespace godot {
+
+namespace growth_sim {
+
+void {{parse_function}}(const Dictionary &form_dict, growth::{{ParsedFormStruct}} &out) {
+	out = growth::{{ParsedFormStruct}}{};
+	if (form_dict.size() == 0)
+		return;
+
+	Array keys = form_dict.keys();
+	for (int i = 0; i < keys.size(); ++i) {
+		Variant k = keys[i];
+		if (k.get_type() != Variant::STRING)
+			continue;
+		String key_str = k;
+		std::string key(key_str.utf8().get_data());
+		Variant v = form_dict.get(k, Variant());
+
+		if (key == "{{form_key}}" && v.get_type() == Variant::STRING) {
+			String s = v.operator String();
+			if (!s.is_empty())
+				out.{{member}} = std::string(s.utf8().get_data());
+			continue;
+		}
+		// additional keys…
+	}
+}
+
+} // namespace growth_sim
+
+} // namespace godot

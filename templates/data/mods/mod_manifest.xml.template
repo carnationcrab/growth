@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TEMPLATE: data/mods/mod_manifest | CHECKLIST: data/manifest.xml load_order after core -->
+<pack_manifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="../core/schemas/pack_manifest.xsd"
+               pack_id="{{mod_pack_id}}">
+  <version>1</version>
+  <defs>
+    <file>defs/{{def_file}}.xml</file>
+  </defs>
+</pack_manifest>

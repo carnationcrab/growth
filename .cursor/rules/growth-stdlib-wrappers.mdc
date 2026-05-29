@@ -1,0 +1,45 @@
+---
+description: sim_core external headers must go through base/gateway wrappers, not direct #include
+globs:
+  - gde/sim_core/**/*
+alwaysApply: true
+---
+
+# External include gateways (sim_core + gde/src)
+
+## Rule
+
+Do **not** `#include <...>` **any** external header (C/C++ standard library, platform SDK, third-party) in `gde/sim_core/` except inside **`gde/sim_core/include/base/gateway/`**.
+
+In **`gde/src/`**, only Godot/GDExtension angle includes are allowed (`<godot_cpp/...>`, `<gdextension_interface.h>`). Stdlib and platform APIs must come from `base/gateway/C*.hpp` (same as sim_core).
+
+Each external header gets one **gateway struct** in `base/gateway/` (e.g. `Cmath`, `Cvector`, `Cwin`). New dependencies → new gateway via [templates/sim_core/base/gateway/StdlibWrapper.hpp.template](templates/sim_core/base/gateway/StdlibWrapper.hpp.template):
+
+```powershell
+.\tools\new_from_template.ps1 base StdlibWrapper Cstdio
+```
+
+Then add `#include "{{ClassName}}.hpp"` to [base/gateway/Gateway.hpp](gde/sim_core/include/base/gateway/Gateway.hpp).
+
+## Usage
+
+| Need | Include | Call / type |
+|------|---------|-------------|
+| `sqrt`, `abs` | `base/gateway/Cmath.hpp` or `math/Math.hpp` | `Cmath::sqrt(x)` |
+| `std::vector`, `std::string` | `base/gateway/Cvector.hpp`, `base/gateway/Cstring.hpp` | `Vector<T>`, `String` |
+| `uint32_t`, etc. | `Types.hpp` | `U32`, `U64`, `Seed` |
+| `size_t` | `Types.hpp` | `Size` |
+| Common containers / algorithms | `util/StdLib.hpp` or specific `base/gateway/C*.hpp` | `Vector`, `UnorderedMap`, `Calgorithm::sort` |
+| All gateways (rare) | `base/gateway/Gateway.hpp` or `base/Base.hpp` | umbrella only |
+| Domain scalars (`lerp`, `epsilon`) | `math/Scalar.hpp` | `growth::lerp`, `constants::epsilon` |
+
+`Scalar.hpp` is for **game math**, not for hosting `<cmath>`.
+
+## While implementing
+
+- Godot headers remain forbidden under `sim_core/` (unchanged).
+- Migrate touched files off raw `stdint` / `cmath` when you edit them.
+
+## Lint
+
+`python tools/lint_moddability.py` — rules **`cpp_sim_core_external_include`** and **`cpp_gde_src_external_include`** flag any `#include <...>` outside allowed zones. Suppress per line: `// moddability:ignore cpp_sim_core_external_include` (prefer fixing).

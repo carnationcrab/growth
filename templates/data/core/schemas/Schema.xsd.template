@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TEMPLATE: data/core/schemas/Schema | CHECKLIST: manifest schemas section · DefFile xsi:schemaLocation -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="{{root_element}}">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="{{child_element}}" type="{{ChildType}}" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="{{ChildType}}">
+    <xs:attribute name="{{id_attr}}" type="xs:ID" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:schema>

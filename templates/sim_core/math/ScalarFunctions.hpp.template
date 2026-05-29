@@ -1,0 +1,16 @@
+// TEMPLATE: math/ScalarFunctions | CHECKLIST: domain scalars only — use base/Cmath.hpp via Scalar.hpp; canonical layout: math/Scalar.hpp
+#pragma once
+
+#include "math/Scalar.hpp"
+
+namespace growth {
+
+namespace constants {
+	constexpr double {{name}} = {{value}};
+}
+
+inline double {{function_name}}(double v, double lo, double hi) {
+	return clamp(v, lo, hi);
+}
+
+} // namespace growth

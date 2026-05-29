@@ -4,8 +4,8 @@
 #include "WorldCoord.hpp"
 #include "../bridge/Diff.hpp"
 #include "../bridge/DiffQueue.hpp"
-#include <unordered_map>
-#include <string>
+#include "base/gateway/Cunordered_map.hpp"
+#include "base/gateway/Cstring.hpp"
 
 namespace growth {
 
@@ -18,7 +18,7 @@ public:
 private:
 	Chunk &get_or_create(ChunkCoord coord);
 
-	std::unordered_map<int64_t, Chunk> chunks_;
+	UnorderedMap<int64_t, Chunk> chunks_;
 
 	static int64_t key(ChunkCoord c) {
 		return (static_cast<int64_t>(c.x) << 32) | (static_cast<uint32_t>(c.z));

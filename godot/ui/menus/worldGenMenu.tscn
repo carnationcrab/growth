@@ -95,15 +95,15 @@ text = "Points"
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "256"
+text = "16384"
 horizontal_alignment = 2
 
 [node name="PointsSlider" type="HSlider" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PointsBlock"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 32.0
-max_value = 10000.0
-value = 256.0
+min_value = 4096.0
+max_value = 500000.0
+value = 16384.0
 step = 1.0
 
 [node name="JitterBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
@@ -147,7 +147,7 @@ text = "Tectonic plates"
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "25"
+text = "32"
 horizontal_alignment = 2
 
 [node name="PlatesSlider" type="HSlider" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PlatesBlock"]
@@ -155,7 +155,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 min_value = 10.0
 max_value = 50.0
-value = 25.0
+value = 32.0
 step = 1.0
 
 [node name="TempBlock" type="VBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]
@@ -215,6 +215,7 @@ layout_mode = 2
 
 [node name="PlanetTerrainMeshCheckBox" type="CheckBox" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox/PlanetTerrainMeshRow"]
 layout_mode = 2
+button_pressed = true
 text = "Planet terrain mesh"
 
 [node name="BottomRow" type="HBoxContainer" parent="MarginContainer/CenterContainer/Card/CardPadding/CardVBox"]

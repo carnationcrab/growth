@@ -1,14 +1,15 @@
 #include "bridge/DiffQueue.hpp"
+#include "base/gateway/Cutility.hpp"
 
 namespace growth {
 
 void DiffQueue::push(Diff d) {
-	queue_.push_back(std::move(d));
+	queue_.push_back(Cutility::move(d));
 }
 
 bool DiffQueue::pop(Diff &out) {
 	if (queue_.empty()) return false;
-	out = std::move(queue_.front());
+	out = Cutility::move(queue_.front());
 	queue_.pop_front();
 	return true;
 }

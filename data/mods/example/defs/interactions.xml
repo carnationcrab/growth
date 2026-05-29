@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example mod: overrides harvest hint text (later pack wins). -->
+<interactions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../../core/schemas/interactions.xsd">
+  <interaction_def interaction_id="harvest_plant" action_type="harvest" display_name="Harvest (modded)"
+                  condition_set_id="entity_harvestable" tool_id="scythe" ui_hint="Modded harvest hint."/>
+</interactions>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TEMPLATE: data/core/defs/game_profile | CHECKLIST: scene_registry scene_id / script_id bindings -->
+<game_profile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:noNamespaceSchemaLocation="../schemas/game_profile.xsd"
+              profile_id="default">
+  <presentation>
+    <entry_menu scene_id="{{entry_scene_id}}"/>
+    <world_view script_id="{{world_script_id}}"/>
+    <{{optional_binding}} scene_id="{{scene_id}}"/>
+  </presentation>
+  <world_gen pipeline_id="{{pipeline_id}}"/>
+</game_profile>

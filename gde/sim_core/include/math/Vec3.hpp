@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Vec2.hpp"
-#include <cmath>
+#include "base/gateway/Cmath.hpp"
 
 namespace growth {
 
@@ -28,7 +28,7 @@ struct Vec3 {
 
 	float dot(Vec3 o) const { return x * o.x + y * o.y + z * o.z; }
 	float length_squared() const { return dot(*this); }
-	float length() const { return std::sqrt(length_squared()); }
+	float length() const { return Cmath::sqrt(length_squared()); }
 
 	Vec3 cross(Vec3 o) const {
 		return Vec3(

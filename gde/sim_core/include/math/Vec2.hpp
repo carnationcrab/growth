@@ -1,6 +1,6 @@
+#include "base/gateway/Cmath.hpp"
 #pragma once
 
-#include <cmath>
 
 namespace growth {
 
@@ -25,7 +25,7 @@ struct Vec2 {
 
 	float dot(Vec2 o) const { return x * o.x + y * o.y; }
 	float length_squared() const { return dot(*this); }
-	float length() const { return std::sqrt(length_squared()); }
+	float length() const { return Cmath::sqrt(length_squared()); }
 
 	Vec2 normalised() const {
 		float l = length();

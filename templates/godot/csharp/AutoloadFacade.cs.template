@@ -1,0 +1,47 @@
+// TEMPLATE: godot/AutoloadFacade | CHECKLIST: rare — canonical: autoload/SimAPI.cs + autoload/sim/* engines
+using Godot;
+using System.Collections.Generic;
+
+/// <summary>
+/// Single door into C++ sim. No other scripts talk to GDExtension directly.
+/// Keep the autoload thin; compose engines under godot/autoload/sim/ (see GrowthSimBackend, WorldGenResultEngine, …).
+/// </summary>
+public partial class {{ClassName}} : Node
+{
+	public const string DIFF_{{EVENT_A}} = "{{EventA}}";
+	public const string DIFF_{{EVENT_B}} = "{{EventB}}";
+
+	private RefCounted _backend;
+	private bool _cppBackendReady;
+
+	public override void _Ready()
+	{
+		if (TryInitialiseCppBackend())
+			GD.Print("[{{ClassName}}] using C++ GrowthSim backend");
+		else
+		{
+			GD.Print("[{{ClassName}}] GrowthSim unavailable; using stub backend");
+			LoadStubDefs();
+		}
+	}
+
+	private bool TryInitialiseCppBackend()
+	{
+		_backend         = null;
+		_cppBackendReady = false;
+		if (!ClassDB.ClassExists("GrowthSim"))
+			return false;
+		// verify required methods, then boot(data_root, profile_id)
+		return _cppBackendReady;
+	}
+
+	public void Boot(string dataRoot, string profileId = "default")
+	{
+		// delegate to _backend or stub
+	}
+
+	public void Step(double delta, double timeScale = 1.0)
+	{
+		// delegate to _backend or stub
+	}
+}

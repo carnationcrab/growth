@@ -2,8 +2,8 @@
 
 #include "PlanetGenome.hpp"
 #include "util/Random.hpp"
-#include <cstdint>
-#include <string>
+#include "base/gateway/Cstdint.hpp"
+#include "base/gateway/Cstring.hpp"
 
 namespace growth {
 
@@ -91,7 +91,7 @@ struct PlanetGenBlueprint {
 };
 
 /// Set blueprint to a named preset (Earthlike, OceanWorld, Dry). Preset data can be loaded from XML elsewhere.
-void set_blueprint_to_preset(PlanetGenBlueprint &blueprint, const std::string &preset_name);
+void set_blueprint_to_preset(PlanetGenBlueprint &blueprint, const String &preset_name);
 
 /// Set blueprint to random valid configuration (wider ranges, randomised weights). Uses rng for weights only.
 void set_blueprint_to_random(PlanetGenBlueprint &blueprint, random::RNG &rng);

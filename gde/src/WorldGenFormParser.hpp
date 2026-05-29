@@ -2,8 +2,8 @@
 
 #include <godot_cpp/variant/dictionary.hpp>
 #include "api/ParsedWorldGenForm.hpp"
-#include <string>
-#include <unordered_map>
+#include "base/gateway/Cstring.hpp"
+#include "base/gateway/Cunordered_map.hpp"
 
 namespace godot {
 

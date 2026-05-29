@@ -1,8 +1,8 @@
 // Blueprint presets (Earthlike, OceanWorld, Dry) and random blueprint; used by WorldGenRunner before PlanetGenerator.
 #include "gen/PlanetBlueprint.hpp"
 #include "util/Random.hpp"
-#include <cmath>
-#include <algorithm>
+#include "base/gateway/Cmath.hpp"
+#include "base/gateway/Calgorithm.hpp"
 
 namespace growth {
 
@@ -43,7 +43,7 @@ namespace {
 	}
 }
 
-void set_blueprint_to_preset(PlanetGenBlueprint &blueprint, const std::string &preset_name) {
+void set_blueprint_to_preset(PlanetGenBlueprint &blueprint, const String &preset_name) {
 	if (preset_name == "Earthlike")
 		preset_earthlike(blueprint);
 	else if (preset_name == "OceanWorld")

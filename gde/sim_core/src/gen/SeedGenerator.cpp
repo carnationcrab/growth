@@ -1,6 +1,6 @@
 #include "gen/SeedGenerator.hpp"
 #include "util/String.hpp"
-#include <cstdint>
+#include "base/gateway/Cstdint.hpp"
 
 namespace growth {
 
@@ -16,12 +16,12 @@ WorldSeed SeedGenerator::from_seed(uint64_t user_seed) const {
 	WorldSeed ws;
 	ws.value = user_seed;
 	ws.height_scale = 1.0f;
-	ws.octaves = 4;
-	ws.frequency = 0.01f;
+	ws.octaves = 5;
+	ws.frequency = 0.025f;
 	return ws;
 }
 
-WorldSeed SeedGenerator::from_form(const std::unordered_map<std::string, int64_t> &answers) const {
+WorldSeed SeedGenerator::from_form(const UnorderedMap<String, int64_t> &answers) const {
 	WorldSeed ws = from_seed(0);
 
 	uint64_t combined = 0;

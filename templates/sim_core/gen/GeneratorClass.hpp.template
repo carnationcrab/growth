@@ -1,0 +1,18 @@
+// TEMPLATE: gen/GeneratorClass | CHECKLIST: .cpp + SConstruct if not header-only
+#pragma once
+
+#include "{{ProductType}}.hpp"
+#include <cstdint>
+
+namespace growth {
+
+struct {{GuardrailsStruct}};
+
+/// {{BriefDescription}} Deterministic.
+class {{ClassName}} {
+public:
+	{{ProductType}} generate(uint64_t seed) const;
+	{{ProductType}} generate(uint64_t seed, const {{GuardrailsStruct}} &guardrails) const;
+};
+
+} // namespace growth

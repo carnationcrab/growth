@@ -1,0 +1,14 @@
+// TEMPLATE: ecs/ComponentStruct | CHECKLIST: Registry usage at call site (header-only)
+#pragma once
+
+#include "EntityId.hpp"
+
+namespace growth {
+
+/// ECS component: plain data, no behaviour.
+struct {{ComponentName}} {
+	float {{field_a}} = 0.f;
+	int32_t {{field_b}} = 0;
+};
+
+} // namespace growth

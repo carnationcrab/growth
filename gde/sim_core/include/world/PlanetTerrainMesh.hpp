@@ -1,24 +1,24 @@
 #pragma once
 
 #include "math/Vec3.hpp"
-#include <cstddef>
-#include <cstdint>
-#include <vector>
+#include "base/gateway/Cstddef.hpp"
+#include "base/gateway/Cstdint.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
 struct PlanetGlobe;
 
-/// Planet terrain mesh produced from a PlanetGlobe (render-ready). Used for world generation and
-/// streaming the world map based on player position. Two generation methods:
-/// - Voronoi triangles: each Voronoi cell split into tris (triangle centre, neighbour triangle centre, region centre).
-/// - Quad (displaced sphere): Delaunay triangulation of Voronoi sites; one vertex per site, displaced radially by elevation; guaranteed connected.
+/// Render-ready planet terrain mesh produced from a PlanetGlobe.
 struct PlanetTerrainMesh {
-	std::vector<Vec3> vertices;
-	std::vector<Vec3> normals;
-	std::vector<uint32_t> indices;
-	/// Per triangle (indices.size() / 3): river flow strength; high = river valley, 0 = ridge. Used for shading.
-	std::vector<float> river_strength;
+	Vector<Vec3> vertices;
+	Vector<Vec3> normals;
+	Vector<uint32_t> indices;
+	/// Per output triangle (indices.size() / 3): river-flow strength used for shading.
+	Vector<float> river_strength;
+	/// Per vertex (same length as vertices): map-layer elevation / moisture samples.
+	Vector<float> vertex_elevation;
+	Vector<float> vertex_moisture;
 };
 
 enum class PlanetTerrainMeshMethod {
@@ -26,10 +26,30 @@ enum class PlanetTerrainMeshMethod {
 	QuadMesh
 };
 
-/// Build planet terrain mesh using Voronoi-triangle method: each cell filled with tris (region centre, circumcenter i, circumcenter i+1).
+/// Voronoi-triangle method (legacy): each Voronoi cell filled with a triangle fan.
+/// Reads globe.topology + region_triangle_rings + mesh.t_xyz (legacy Voronoi cell fan).
 void generate_planet_terrain_mesh_voronoi_triangles(const PlanetGlobe &globe, PlanetTerrainMesh &out);
 
-/// Build planet terrain mesh as displaced sphere: Delaunay mesh of sites, vertices pushed/pulled by region elevation; river_strength per triangle from s_flow.
+/// Displaced-sphere method (legacy): Delaunay-triangle mesh of sites, vertices pushed radially.
+/// Reads globe.topology.triangles directly.
 void generate_planet_terrain_mesh_quad(const PlanetGlobe &globe, PlanetTerrainMesh &out);
+
+/// Pipeline-canonical dual mesh (RBG QuadGeometry): region vertices plus triangle-centroid
+/// vertices, one triangle per half-edge (r_begin, r_end, inner triangle). Continuous watertight
+/// shell in sim Z-up space. Indices are corrected to face outward (centroid vs geometric normal).
+/// Godot still applies a global chirality flip when building ArrayMesh. Fills vertex_elevation /
+/// vertex_moisture for preview map layers.
+void generate_planet_terrain_mesh_dual_folded(const PlanetGlobe &globe, PlanetTerrainMesh &out);
+
+/// Per-triangle: swap winding when geometric normal points toward the origin (inward shell).
+void ensure_planet_terrain_mesh_outward_winding(PlanetTerrainMesh &mesh);
+
+/// Floating-islands mesh: each region emits its triangle-ring as a fan (using
+/// globe.region_triangle_rings + globe.mesh.t_xyz), with elevations forced positive so the
+/// mesh "floats" rather than dipping under sea level. Optionally fills triangle_region_out
+/// with the source region id for each emitted triangle (size = indices.size() / 3).
+void generate_planet_terrain_mesh_floating_islands(const PlanetGlobe &globe,
+                                                   PlanetTerrainMesh &out,
+                                                   Vector<uint32_t> *triangle_region_out = nullptr);
 
 } // namespace growth

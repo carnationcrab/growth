@@ -1,0 +1,16 @@
+// TEMPLATE: api/ServiceClass | CHECKLIST: SConstruct · wire caller (WorldGenRunner / SimBridge)
+#pragma once
+
+#include "{{ParsedFormHeader}}.hpp"
+#include "../gen/WorldSeed.hpp"
+#include "../gen/PlanetGenome.hpp"
+
+namespace growth {
+
+/// {{BriefDescription}} No UI or platform types.
+class {{ClassName}} {
+public:
+	void run(const {{ParsedFormStruct}} &form, WorldSeed &world_seed_out, PlanetGenome &planet_genome_out) const;
+};
+
+} // namespace growth

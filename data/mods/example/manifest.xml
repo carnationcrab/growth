@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pack_manifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="../core/schemas/pack_manifest.xsd"
+               pack_id="example_mod">
+  <version>1</version>
+  <defs>
+    <file>defs/interactions.xml</file>
+  </defs>
+</pack_manifest>

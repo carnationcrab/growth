@@ -18,6 +18,13 @@ func _setup_menu() -> void:
 		size_opt.add_item("Medium", 1)
 		size_opt.add_item("Large", 2)
 		size_opt.select(1)
+	var points_slider := vbox.get_node_or_null("PointsBlock/PointsSlider") as HSlider
+	if points_slider:
+		points_slider.max_value = 500000.0
+	var planet_terrain_mesh_check := vbox.get_node_or_null(
+		"PlanetTerrainMeshRow/PlanetTerrainMeshCheckBox") as CheckBox
+	if planet_terrain_mesh_check:
+		planet_terrain_mesh_check.button_pressed = true
 
 
 func _connect_signals() -> void:
@@ -85,10 +92,11 @@ func _on_generate_pressed() -> void:
 	var world_size_idx: int = size_opt.selected if size_opt else 1
 	var temperature: float = temp_slider.value if temp_slider else 0.0
 	var precipitation: float = precip_slider.value if precip_slider else 0.0
-	var num_points: int = int(points_slider.value) if points_slider else 256
+	var num_points: int = int(points_slider.value) if points_slider else WorldGenCardPaths.DEFAULT_VORONOI_SITES
 	var jitter: float = jitter_slider.value if jitter_slider else 0.0
-	var num_plates: int = int(plates_slider.value) if plates_slider else 25
-	var use_planet_terrain_mesh: bool = planet_terrain_mesh_check.button_pressed if planet_terrain_mesh_check else false
+	var num_plates: int = int(plates_slider.value) if plates_slider else WorldGenCardPaths.DEFAULT_NUM_PLATES
+	var use_planet_terrain_mesh: bool = (
+		planet_terrain_mesh_check.button_pressed if planet_terrain_mesh_check else true)
 
 	var form_dict: Dictionary = {
 		"seed": seed_text,
@@ -123,59 +131,10 @@ func _on_load_screen_finished(result: Dictionary) -> void:
 
 
 func _apply_world_gen_result(result: Dictionary) -> void:
-	var sites = result.get("sites", null)
-	var triangles = result.get("triangles", null)
-	var circumcenters = result.get("circumcenters", null)
-	var cells = result.get("cells", null)
-	var plate_regions = result.get("plate_regions", null)
-
 	var main = get_parent().get_parent() if get_parent() else null
 	if not main:
 		return
-	var preview = main.get_node_or_null("SpherePreview")
-	for child in main.get_children():
-		if child.name == "SpherePreview" and child != preview:
-			child.queue_free()
-	if preview == null:
-		var preview_scene = load("res://godot/debug/SpherePreview.tscn") as PackedScene
-		if preview_scene:
-			preview = preview_scene.instantiate()
-			main.add_child(preview)
-			print("[WorldGen] added SpherePreview to main scene")
-		else:
-			push_error("[WorldGen] failed to load SpherePreview.tscn")
-	if preview and sites and sites.size() > 0:
-		preview.set_sites(sites)
-	if preview and triangles and triangles.size() > 0:
-		preview.set_triangles(Array(triangles))
-	if preview and circumcenters and circumcenters.size() > 0:
-		preview.set_circumcenters(circumcenters)
-	if preview and cells and cells.size() > 0:
-		preview.set_cells(cells)
-	if plate_regions != null and plate_regions.size() > 0 and preview:
-		preview.set_plate_regions(plate_regions)
-	var plate_elevation = result.get("plate_elevation", null)
-	if plate_elevation != null and plate_elevation.size() > 0 and preview:
-		preview.set_plate_elevation(plate_elevation)
-	var plate_moisture = result.get("plate_moisture", null)
-	if plate_moisture != null and plate_moisture.size() > 0 and preview:
-		preview.set_plate_moisture(plate_moisture)
-	var ptm_verts = result.get("planet_terrain_mesh_vertices", null)
-	var ptm_normals = result.get("planet_terrain_mesh_normals", null)
-	var ptm_indices = result.get("planet_terrain_mesh_indices", null)
-	var ptm_river = result.get("planet_terrain_mesh_river_strength", null)
-	var use_planet_terrain_mesh: bool = result.get("use_planet_terrain_mesh", false)
-	print("[WorldGen] Planet terrain mesh: use_planet_terrain_mesh=", use_planet_terrain_mesh, " verts=", ptm_verts.size() if ptm_verts != null else 0, " indices=", ptm_indices.size() if ptm_indices != null else 0)
-	if preview and ptm_verts != null and ptm_indices != null and ptm_verts.size() > 0 and ptm_indices.size() > 0:
-		# Convert to Array so C# receives a type it can iterate (avoids Packed* type names in C#).
-		print("[WorldGen] Planet terrain mesh: calling preview.set_planet_terrain_mesh (verts=%d indices=%d)" % [ptm_verts.size(), ptm_indices.size()])
-		preview.set_planet_terrain_mesh(Array(ptm_verts), Array(ptm_normals) if ptm_normals else [], Array(ptm_indices), Array(ptm_river) if ptm_river else [])
-	elif preview and use_planet_terrain_mesh:
-		print("[WorldGen] Planet terrain mesh was requested but result had no mesh data (vertices or indices missing/empty).")
-	if preview and use_planet_terrain_mesh:
-		# Only effect: in the preview overlay, Planet terrain mesh is checked and all other layer toggles are unchecked.
-		print("[WorldGen] Planet terrain mesh: calling set_show_planet_terrain_mesh_only(true)")
-		preview.set_show_planet_terrain_mesh_only(true)
+	WorldGenPreviewApplier.apply(main, result)
 
 
 func _apply_ui_assets() -> void:

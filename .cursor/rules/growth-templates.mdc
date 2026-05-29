@@ -1,0 +1,61 @@
+---
+description: Check templates before new code; keep templates in sync after pattern changes
+globs:
+  - gde/sim_core/**/*
+  - gde/src/**/*
+  - godot/**/*
+  - data/**/*
+  - templates/**/*
+alwaysApply: true
+---
+
+# Growth templates (before, during, after)
+
+## Before any new file or feature
+
+Do this **first**, before creating or editing production code:
+
+1. Open [templates/README.md](templates/README.md) and follow the **decision tree** — pick the closest template (or combination, e.g. `world/StaticClass` + pipeline checklist).
+2. Run `.\tools\new_from_template.ps1 -List` if unsure which template exists.
+3. Prefer generating from template:
+   `.\tools\new_from_template.ps1 <layer> <template> <Name>`
+   from repo root, then customise — do not hand-roll structure that a template already encodes.
+4. Read the matching **checklist** in the README (and the `// TEMPLATE | CHECKLIST` line on the `.template` file).
+5. Open the **canonical** file listed in the README for that pattern (e.g. `SpherePreviewOverlay.tscn`, `PlanetGlobePipeline.cpp`) and match conventions there.
+
+If the task does not fit any template, say so briefly and still follow canonical files + moddability rules; consider adding a new template in a follow-up.
+
+## While implementing
+
+- Do not `#include` external headers in `sim_core/` except under `include/base/gateway/` — see [growth-stdlib-wrappers.mdc](growth-stdlib-wrappers.mdc).
+- Do not add Godot headers under `gde/sim_core/`.
+- Do not call `GrowthSim` from Godot except via [SimAPI.cs](godot/autoload/SimAPI.cs).
+- No hardcoded `res://` paths or def XML in gameplay scripts — use `SimAPI` + data defs.
+- New `.cpp` under scanned sim_core trees or `gde/src/`: add to [gde/SConstruct](gde/SConstruct) `sources` in the same change.
+
+## After implementing — update templates when patterns change
+
+If your change **introduces or alters** a repeatable pattern, update `templates/` in the same PR (or immediately after):
+
+| You changed… | Update… |
+|--------------|---------|
+| UI card layout, panel wiring, overlay toggles | `godot/scenes/UiPanelCard.tscn.template`, `godot/csharp/UiPanel.cs.template`; README canonical → real `.tscn`/`.cs` |
+| World-gen stage registration / pipeline | README checklist + `world/StaticClass` or `Implementation` templates if stage boilerplate changed |
+| Form dict ↔ C++ struct fields | `api/PlainStruct`, `gde/GodotAdapter`, README path to `WorldGenFormParser.cpp` |
+| New def type or manifest shape | `data/core/defs/*`, `pack_manifest.xml.template`, README checklist |
+| Math / vector API surface | **Do not** duplicate in templates — point README at `math/Vector.hpp` / `Scalar.hpp` only |
+
+Rules for template edits:
+
+- Keep placeholders `{{PascalCase}}` / `{{snake_case}}`; run through `new_from_template.ps1` mentally or with a test name to verify substitution.
+- One-line `// TEMPLATE | CHECKLIST` (or XML/GD comment) at top of each `.template` must stay accurate.
+- If canonical file and template diverge, **canonical wins** — copy structure from production into template, not the reverse.
+
+## Verification (end of task)
+
+```bash
+python tools/lint_sconstruct_sources.py
+python tools/lint_moddability.py   # includes cpp_sim_core_external_include (base wrappers)
+```
+
+Fix failures before finishing. Do not add new entries to `KNOWN_UNLISTED` in `lint_sconstruct_sources.py` except with explicit user approval.

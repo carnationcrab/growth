@@ -1,6 +1,6 @@
+#include "base/gateway/Cstdint.hpp"
 #pragma once
 
-#include <cstdint>
 
 namespace growth {
 
@@ -11,9 +11,9 @@ struct WorldSeed {
 	/// Height scale for terrain (e.g. vertical scale of noise).
 	float height_scale = 1.0f;
 	/// Number of octaves for fractal noise.
-	int octaves = 4;
+	int octaves = 5;
 	/// Base frequency for noise (e.g. world-space scale).
-	float frequency = 0.01f;
+	float frequency = 0.025f;
 };
 
 } // namespace growth

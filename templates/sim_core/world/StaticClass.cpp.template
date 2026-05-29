@@ -1,0 +1,17 @@
+// TEMPLATE: world/StaticClass | CHECKLIST: SConstruct · PlanetGlobePipeline · world_gen_pipelines.xml
+#include "world/{{ClassName}}.hpp"
+
+namespace growth {
+
+Vec3 {{ClassName}}::{{static_method}}(const {{DependencyStruct}} &topology, const std::array<size_t, 3> &triangle) {
+	const Vec3 &a = topology.sites[triangle[0]];
+	const Vec3 &b = topology.sites[triangle[1]];
+	const Vec3 &c = topology.sites[triangle[2]];
+	return Vec3((a.x + b.x + c.x) / 3.0, (a.y + b.y + c.y) / 3.0, (a.z + b.z + c.z) / 3.0).normalised();
+}
+
+void {{ClassName}}::{{build_method}}(const {{DependencyStruct}} &topology, {{OutputType}} &out) {
+	// implementation
+}
+
+} // namespace growth

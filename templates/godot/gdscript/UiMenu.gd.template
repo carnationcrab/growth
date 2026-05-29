@@ -1,0 +1,21 @@
+# TEMPLATE: godot/UiMenu | CHECKLIST: .tscn · scene_registry.xml · game_profile.xml · canonical: WorldGenMenu.gd + godot/ui/menus/world_gen/
+extends Control
+## {{BriefDescription}} Thin scene script; split constants, paths, form binder, styling, and flow into sibling RefCounted modules (see world_gen/).
+
+var _form: {{PascalCase}}CardFormBinder = {{PascalCase}}CardFormBinder.new()
+
+
+func _ready() -> void:
+	{{PascalCase}}CardUiStyling.apply(self)
+	if not _form.bind(self):
+		push_error("[{{MenuName}}] card layout missing")
+		return
+	_form.setup_defaults()
+	_form.connect_actions(_on_{{button_handler}}_pressed)
+
+
+func _on_{{button_handler}}_pressed() -> void:
+	var form_dict: Dictionary = _form.collect_form()
+	if form_dict.is_empty():
+		return
+	# navigate via SimAPI.get_presentation_scene_path("{{next_scene_binding}}")

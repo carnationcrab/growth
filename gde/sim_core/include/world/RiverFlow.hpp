@@ -1,37 +1,39 @@
 #pragma once
 
 #include "SphereHalfEdgeMesh.hpp"
-#include <cstddef>
-#include <vector>
+#include "base/gateway/Cstddef.hpp"
+#include "base/gateway/Cvector.hpp"
 
 namespace growth {
 
-/// River flow data (mapgen4-style): per-triangle downflow side, per-edge flow strength.
-/// assign_downflow: each triangle finds the neighbour with lower elevation; t_downflow_s stores the half-edge water flows through.
-/// assign_flow: process triangles high to low; water accumulates; s_flow stores river strength per edge.
+/// River flow data (mapgen4 / Red Blob Games 1843-planet-generation style).
 struct RiverFlow {
-	/// Per triangle: half-edge index through which water flows to the lower neighbour, or k_invalid if local minimum.
-	std::vector<size_t> t_downflow_s;
-	/// Per half-edge: accumulated flow strength (river strength); large values become rivers.
-	std::vector<float> s_flow;
+	/// Per triangle: half-edge index water flows through toward lower elevation.
+	Vector<size_t> t_downflow_s;
+	/// Visit order from assign_downflow (ocean seeds, then elevation priority queue).
+	Vector<size_t> order_t;
+	/// Per half-edge: accumulated flow strength (river strength).
+	Vector<float> s_flow;
 
 	static constexpr size_t k_invalid = SphereHalfEdgeMesh::k_invalid;
 };
 
-/// Step 1 — Determine flow direction. Each triangle finds the neighbour with lower elevation.
+/// Step 1 — Downflow and visit order (RBG assignDownflow): ocean triangles first, then land by elevation.
 void assign_downflow(
 	const SphereHalfEdgeMesh &mesh,
-	const std::vector<float> &triangle_elevation,
-	RiverFlow &out
-);
+	const Vector<float> &triangle_elevation,
+	RiverFlow &out);
 
-/// Step 2 — Flow accumulation. Process triangles from high to low; flow[downstream] += flow[current].
-/// Edges with large flow become rivers. triangle_elevation used for sort order (high to low).
+/// Step 2 — Moisture-driven flow accumulation (RBG assignFlow, without elevation change).
+/// Fills s_flow; use apply_hydraulic_erosion for the elevation carve pass.
 void assign_flow(
 	const SphereHalfEdgeMesh &mesh,
 	const RiverFlow &downflow,
-	const std::vector<float> &triangle_elevation,
-	RiverFlow &out
-);
+	const Vector<float> &triangle_elevation,
+	const Vector<float> &triangle_moisture,
+	RiverFlow &out);
+
+/// 90th-percentile of positive side flows; used for river carve and preview line export.
+float river_flow_visual_threshold(const Vector<float> &s_flow);
 
 } // namespace growth

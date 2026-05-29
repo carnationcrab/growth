@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TEMPLATE: data/core/defs/scene_registry | CHECKLIST: game_profile presentation refs · res:// paths -->
+<scene_registry xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:noNamespaceSchemaLocation="../schemas/scene_registry.xsd">
+  <scene scene_id="{{scene_id}}" path="res://godot/{{scene_subpath}}/{{SceneFile}}.tscn"/>
+  <script script_id="{{script_id}}" path="res://godot/{{menu_script_subpath}}/{{ScriptFile}}.gd"/>
+</scene_registry>

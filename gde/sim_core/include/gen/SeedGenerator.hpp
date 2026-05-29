@@ -1,8 +1,8 @@
 #pragma once
 
 #include "WorldSeed.hpp"
-#include <unordered_map>
-#include <string>
+#include "base/gateway/Cunordered_map.hpp"
+#include "base/gateway/Cstring.hpp"
 
 namespace growth {
 
@@ -13,7 +13,7 @@ public:
 	WorldSeed from_seed(uint64_t user_seed) const;
 
 	/// Build world params from form answers. Keys and values are combined deterministically into the seed; known keys set scale/octaves/frequency.
-	WorldSeed from_form(const std::unordered_map<std::string, int64_t> &answers) const;
+	WorldSeed from_form(const UnorderedMap<String, int64_t> &answers) const;
 };
 
 } // namespace growth

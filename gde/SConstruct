@@ -15,31 +15,70 @@ sources = [
     "src/register_types.cpp",
     "src/sim_api_gdextension.cpp",
     "src/WorldGenFormParser.cpp",
-    "src/UiAssetLoader.cpp",
+    "src/WorldGenMarshal.cpp",
     "src/DiffConverter.cpp",
     "src/IntentHandler.cpp",
     "sim_core/src/api/WorldGenRunner.cpp",
+    "sim_core/src/api/WorldGenJob.cpp",
     "sim_core/src/bridge/DiffQueue.cpp",
+    "sim_core/src/bridge/IntentRouter.cpp",
     "sim_core/src/bridge/SimBridge.cpp",
+    "sim_core/src/data/DefDatabase.cpp",
+    "sim_core/src/data/XmlLite.cpp",
     "sim_core/src/gen/PlanetBlueprint.cpp",
     "sim_core/src/gen/PlanetGenerator.cpp",
     "sim_core/src/gen/SeedGenerator.cpp",
+    "sim_core/src/util/FractalNoise.cpp",
+    "sim_core/src/util/JobSystem.cpp",
+    "sim_core/src/util/Parallel.cpp",
+    "sim_core/src/util/PerformanceLogger.cpp",
     "sim_core/src/util/Random.cpp",
+    "sim_core/src/world/BowyerWatson.cpp",
     "sim_core/src/world/Chunk.cpp",
     "sim_core/src/world/ChunkStore.cpp",
-    "sim_core/src/world/BowyerWatson.cpp",
     "sim_core/src/world/Delaunay2D.cpp",
     "sim_core/src/world/ElevationAssigner.cpp",
-    "sim_core/src/world/PlanetTerrainMesh.cpp",
+    "sim_core/src/world/HydraulicErosion.cpp",
     "sim_core/src/world/FibonacciSphere.cpp",
+    "sim_core/src/world/IcosphereEngine.cpp",
     "sim_core/src/world/MoistureAssigner.cpp",
-    "sim_core/src/world/PlatePropertiesAssigner.cpp",
+    "sim_core/src/world/PlanetGlobeFieldUpsampler.cpp",
     "sim_core/src/world/PlanetGlobeGenerator.cpp",
+    "sim_core/src/world/PlanetGlobePipeline.cpp",
+    "sim_core/src/world/PlanetTerrainMesh.cpp",
+    "sim_core/src/world/PlatePropertiesAssigner.cpp",
+    "sim_core/src/world/RegionNeighbourIndex.cpp",
+    "sim_core/src/world/RegionElevationSmooth.cpp",
+    "sim_core/src/world/RegionPriorityFlood.cpp",
+    "sim_core/src/world/RiverCarve.cpp",
     "sim_core/src/world/RiverFlow.cpp",
+    "sim_core/src/world/SphereDual.cpp",
     "sim_core/src/world/SphereHalfEdgeMesh.cpp",
+    "sim_core/src/world/SphereTopologyEngine.cpp",
     "sim_core/src/world/TectonicPlateAssigner.cpp",
     "sim_core/src/world/TriangleValues.cpp",
     "sim_core/src/world/VoronoiSphereGenerator.cpp",
+    "sim_core/src/world/WorldGenPreviewExport.cpp",
 ]
 lib = env.SharedLibrary("bin/growth_sim", sources)
-Default(lib)
+
+# Godot loads the path named in growth_sim.gdextension (platform + target), not bin/growth_sim.dll.
+platform = env.get("platform", ARGUMENTS.get("platform", "windows"))
+target = env.get("target", ARGUMENTS.get("target", "template_debug"))
+godot_lib = None
+if platform == "windows":
+    godot_lib = f"bin/growth_sim.windows.{target}.x86_64.dll"
+elif platform == "linux":
+    godot_lib = f"bin/libgrowth_sim.linux.{target}.x86_64.so"
+elif platform == "macos":
+    godot_lib = f"bin/libgrowth_sim.macos.{target}.universal.dylib"
+if godot_lib:
+    env.Command(godot_lib, lib, Copy("$TARGET", "$SOURCE"))
+
+sim_core_sources = [s for s in sources if s.startswith("sim_core/")]
+bench = env.Program("bin/worldgen_bench", sim_core_sources + ["tools/worldgen_bench.cpp"])
+
+targets = [lib, bench]
+if godot_lib:
+    targets.append(godot_lib)
+Default(*targets)

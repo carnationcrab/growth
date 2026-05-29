@@ -1,0 +1,12 @@
+// TEMPLATE: api/ServiceClass | CHECKLIST: add sim_core/src/api/{{ClassName}}.cpp to SConstruct
+#include "api/{{ClassName}}.hpp"
+#include "gen/SeedGenerator.hpp"
+#include "gen/PlanetGenerator.hpp"
+
+namespace growth {
+
+void {{ClassName}}::run(const {{ParsedFormStruct}} &form, WorldSeed &world_seed_out, PlanetGenome &planet_genome_out) const {
+	// deterministic pipeline
+}
+
+} // namespace growth

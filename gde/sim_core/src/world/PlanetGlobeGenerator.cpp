@@ -1,43 +1,45 @@
 #include "world/PlanetGlobeGenerator.hpp"
-#include "world/ElevationAssigner.hpp"
+#include "world/PlanetGlobePipeline.hpp"
 #include "world/PlanetTerrainMesh.hpp"
-#include "world/MoistureAssigner.hpp"
-#include "world/PlatePropertiesAssigner.hpp"
-#include "world/RiverFlow.hpp"
-#include "world/SphereHalfEdgeMesh.hpp"
-#include "world/TectonicPlateAssigner.hpp"
-#include "world/TriangleValues.hpp"
-#include "world/VoronoiSphereGenerator.hpp"
+#include "util/Parallel.hpp"
 
 namespace growth {
 
-void PlanetGlobeGenerator::run(const WorldSeed &world_seed, const PlanetGenome &planet_genome, size_t num_sites, double jitter_percent, size_t num_plate_regions, float temperature_01, float precipitation_01, PlanetGlobe &out, bool use_planet_terrain_mesh, PlanetTerrainMesh *out_planet_terrain_mesh) const {
+void PlanetGlobeGenerator::run(const WorldSeed &world_seed,
+                               const PlanetGenome &planet_genome,
+                               const size_t num_sites,
+                               const double jitter_percent,
+                               const size_t num_plate_regions,
+                               const float temperature_01,
+                               const float precipitation_01,
+                               PlanetGlobe &out,
+                               const bool use_planet_terrain_mesh,
+                               PlanetTerrainMesh *out_planet_terrain_mesh,
+                               const DefDatabase *defs,
+                               const String &pipeline_id,
+                               perf::PerformanceLogger *perf,
+                               const size_t sim_num_sites) const {
 	(void)planet_genome;
 
-	VoronoiSphereGenerator voronoi_gen;
-	out.voronoi = voronoi_gen.generate(world_seed, num_sites, static_cast<float>(jitter_percent));
+	static DefDatabase k_empty_defs;
+	const DefDatabase &db = defs != nullptr ? *defs : k_empty_defs;
 
-	build_sphere_half_edge_mesh(out.voronoi, out.mesh);
+	PlanetGlobePipelineContext ctx;
+	ctx.world_seed              = &world_seed;
+	ctx.planet_genome           = &planet_genome;
+	ctx.num_sites               = num_sites;
+	ctx.sim_num_sites           = sim_num_sites;
+	ctx.jitter_percent          = jitter_percent;
+	ctx.num_plate_regions       = num_plate_regions;
+	ctx.temperature_01          = static_cast<double>(temperature_01);
+	ctx.precipitation_01        = static_cast<double>(precipitation_01);
+	ctx.globe                   = &out;
+	ctx.use_planet_terrain_mesh = use_planet_terrain_mesh;
+	ctx.planet_terrain_mesh     = out_planet_terrain_mesh;
+	ctx.perf                    = perf;
 
-	TectonicPlateAssigner plate_assigner;
-	plate_assigner.assign(out.voronoi, world_seed, num_plate_regions, out.plates);
-
-	PlatePropertiesAssigner props_assigner;
-	props_assigner.assign(out.voronoi, out.plates, world_seed, out.plate_properties);
-
-	ElevationAssigner elevation_assigner;
-	elevation_assigner.assign(out.voronoi, out.plates, out.plate_properties, world_seed, out.region_elevation);
-
-	MoistureAssigner moisture_assigner;
-	moisture_assigner.assign(out.voronoi, out.plates, out.region_elevation, world_seed, temperature_01, precipitation_01, out.region_moisture);
-
-	assign_triangle_values_from_regions(out.voronoi, out.region_elevation, out.region_moisture, out.triangle_values);
-
-	assign_downflow(out.mesh, out.triangle_values.triangle_elevation, out.river_flow);
-	assign_flow(out.mesh, out.river_flow, out.triangle_values.triangle_elevation, out.river_flow);
-
-	if (use_planet_terrain_mesh && out_planet_terrain_mesh)
-		generate_planet_terrain_mesh_quad(out, *out_planet_terrain_mesh);
+	PlanetGlobePipeline pipeline;
+	pipeline.run(db, pipeline_id.empty() ? String("default_globe") : pipeline_id, ctx);
 }
 
 } // namespace growth

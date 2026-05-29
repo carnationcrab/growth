@@ -1,0 +1,32 @@
+// TEMPLATE: data/DatabaseClass | CHECKLIST: DefDatabase merge · manifest · XSD (rare)
+#pragma once
+
+#include "Defs.hpp"
+#include <string>
+#include <unordered_map>
+
+namespace growth {
+
+/// Merged view of definition packs. Single XML entry point for sim_core.
+class {{ClassName}} {
+public:
+	bool load(const std::string &data_root, const std::string &profile_id = "default");
+
+	const std::string &data_root() const { return data_root_; }
+	const GameProfileDef &game_profile() const { return active_profile_; }
+
+	const {{DefType}} *{{lookup_method}}(const std::string &id) const;
+	std::string {{path_method}}(const std::string &id) const;
+
+private:
+	void load_pack(const std::string &pack_dir);
+	void ingest_def_file(const std::string &path);
+	void merge_{{snake_def_kind}}(const std::string &xml);
+
+	std::string data_root_;
+	std::string active_profile_id_;
+	GameProfileDef active_profile_;
+	std::unordered_map<std::string, {{DefType}}> {{snake_map_name}}_;
+};
+
+} // namespace growth

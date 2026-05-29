@@ -1,0 +1,15 @@
+// TEMPLATE: base/StdlibWrapper | CHECKLIST: sole #include of <{{std_header}}> in sim_core; register in base/Base.hpp; domain code uses growth::{{ClassName}} only
+#pragma once
+
+#include <{{std_header}}>
+
+namespace growth {
+
+/// Gateway to standard header {{std_header}}. Do not include that header elsewhere under gde/sim_core/.
+struct {{ClassName}} final {
+	{{ClassName}}() = delete;
+
+	// TODO: static wrappers for each std symbol this module needs.
+};
+
+} // namespace growth

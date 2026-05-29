@@ -6,8 +6,7 @@
 #include <godot_cpp/variant/packed_int32_array.hpp>
 #include <godot_cpp/variant/packed_vector3_array.hpp>
 #include <godot_cpp/variant/string.hpp>
-#include <unordered_map>
-#include <string>
+#include "base/gateway/Cstring.hpp"
 
 namespace godot {
 
@@ -40,9 +39,6 @@ public:
 
 	/// <summary>Return res:// path for a UI asset id from data/core/defs/ui_assets.xml. Empty if unknown.</summary>
 	String get_ui_asset_path(const String &p_asset_id);
-
-private:
-	std::unordered_map<std::string, std::string> _ui_asset_paths;
 };
 
 } // namespace godot

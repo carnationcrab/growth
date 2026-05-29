@@ -1,0 +1,21 @@
+// TEMPLATE: api/PlainStruct | CHECKLIST: WorldGenFormParser · Godot form keys
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+
+namespace growth {
+
+/// Platform-agnostic input parsed from UI or tools. Filled by a Godot adapter.
+struct {{StructName}} {
+	std::unordered_map<std::string, int64_t> seed_form;
+	std::string planet_preset = "Earthlike";
+	double temperature           = 100.0;
+	double precipitation         = 100.0;
+	size_t voronoi_sites         = 256;
+	bool use_planet_terrain_mesh = false;
+};
+
+} // namespace growth

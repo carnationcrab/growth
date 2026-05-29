@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<world_gen_pipelines xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+                     xsi:noNamespaceSchemaLocation="../schemas/world_gen_pipelines.xsd">
+
+  <pipeline pipeline_id="default_globe">
+
+    <stage ref="topology"/>
+
+    <stage ref="half_edge_mesh"/>
+
+    <stage ref="region_neighbours"/>
+
+    <stage ref="coarse_sim_upsample" optional="true"/>
+
+    <stage ref="tectonic_plates"/>
+
+    <stage ref="plate_properties"/>
+
+    <stage ref="elevation"/>
+
+    <stage ref="moisture"/>
+
+    <stage ref="triangle_values"/>
+
+    <stage ref="priority_flood"/>
+
+    <stage ref="river_downflow"/>
+
+    <stage ref="river_flow"/>
+
+    <stage ref="erosion"/>
+
+    <stage ref="river_carve"/>
+
+    <stage ref="terrain_mesh" optional="true"/>
+
+  </pipeline>
+
+  <pipeline pipeline_id="performance_globe">
+    <stage ref="topology"/>
+    <stage ref="half_edge_mesh"/>
+    <stage ref="region_neighbours"/>
+    <stage ref="coarse_sim_upsample" optional="true"/>
+    <stage ref="tectonic_plates"/>
+    <stage ref="plate_properties"/>
+    <stage ref="elevation"/>
+    <stage ref="moisture"/>
+    <stage ref="triangle_values"/>
+    <stage ref="priority_flood"/>
+    <stage ref="river_downflow"/>
+    <stage ref="river_flow"/>
+    <stage ref="erosion"/>
+    <stage ref="river_carve"/>
+    <stage ref="terrain_mesh" optional="true"/>
+  </pipeline>
+
+  <pipeline pipeline_id="deterministic_globe">
+    <stage ref="topology"/>
+    <stage ref="half_edge_mesh"/>
+    <stage ref="region_neighbours"/>
+    <stage ref="tectonic_plates"/>
+    <stage ref="plate_properties"/>
+    <stage ref="elevation"/>
+    <stage ref="moisture"/>
+    <stage ref="triangle_values"/>
+    <stage ref="priority_flood"/>
+    <stage ref="river_downflow"/>
+    <stage ref="river_flow"/>
+    <stage ref="erosion"/>
+    <stage ref="terrain_mesh" optional="true"/>
+  </pipeline>
+
+</world_gen_pipelines>
+
