@@ -10,6 +10,7 @@ public sealed class WorldGenPreviewPayload
 
 	public Variant Sites { get; init; }
 	public Variant Triangles { get; init; }
+	public Variant TopologyTriangles { get; init; }
 	public Variant Circumcenters { get; init; }
 	public Variant Cells { get; init; }
 	public Variant PlateRegions { get; init; }
@@ -43,6 +44,7 @@ public sealed class WorldGenPreviewPayload
 			PlanetPreset = preset,
 			Sites = GetOrNil(result, WorldGenPreviewKeys.Sites),
 			Triangles = GetOrNil(result, WorldGenPreviewKeys.Triangles),
+			TopologyTriangles = GetOrNil(result, WorldGenPreviewKeys.TopologyTriangles),
 			Circumcenters = GetOrNil(result, WorldGenPreviewKeys.Circumcenters),
 			Cells = GetOrNil(result, WorldGenPreviewKeys.Cells),
 			PlateRegions = GetOrNil(result, WorldGenPreviewKeys.PlateRegions),

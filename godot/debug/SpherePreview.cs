@@ -828,6 +828,14 @@ public partial class SpherePreview : Node3D
 		return colors;
 	}
 
+	private static Color SampleGlobeMapColor(float elevation, float moisture, Vector3 simUnitDir)
+	{
+		float temp = PlanetMapPalette.RegionTemperature(simUnitDir, elevation);
+		return elevation < 0f
+			? PlanetMapPalette.ElevationColor(elevation)
+			: PlanetMapPalette.BiomeColor(elevation, moisture, temp);
+	}
+
 	private Color[] BuildFinalTerrainColors(int vertexCount, Vector3[] simUnitDirs)
 	{
 		var colors = new Color[vertexCount];
@@ -835,10 +843,9 @@ public partial class SpherePreview : Node3D
 		{
 			float elev = RegionElevationAt(i);
 			float moist = RegionMoistureAt(i);
-			float temp = PlanetMapPalette.RegionTemperature(simUnitDirs[i], elev);
-			var biome = PlanetMapPalette.BiomeColor(elev, moist, temp);
+			var baseColor = SampleGlobeMapColor(elev, moist, simUnitDirs[i]);
 			Vector3 normal = PresentationCoords.SimDirectionToGodot(simUnitDirs[i]);
-			colors[i] = PlanetMapPalette.ApplySoftShading(biome, normal);
+			colors[i] = PlanetMapPalette.ApplySoftShading(baseColor, normal);
 		}
 		return colors;
 	}

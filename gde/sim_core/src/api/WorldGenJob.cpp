@@ -261,14 +261,7 @@ void WorldGenJob::worker_main(SharedState *state) {
 		r.planet_terrain_mesh.river_strength.clear();
 		generate_planet_terrain_mesh_floating_islands(r.globe, r.planet_terrain_mesh, &r.planet_terrain_triangle_region);
 	} else if (use_terrain_mesh && r.planet_terrain_mesh.vertices.empty()) {
-		assign_triangle_values_from_regions(
-			r.globe.topology, r.globe.region_elevation, r.globe.region_moisture, r.globe.triangle_values);
-		prepare_elevation_for_terrain_mesh(r.globe.topology,
-		                                   r.globe.region_neighbours,
-		                                   r.globe.region_triangle_rings,
-		                                   r.globe.region_elevation.region_elevation,
-		                                   r.globe.triangle_values.triangle_elevation);
-		generate_planet_terrain_mesh_dual_folded(r.globe, r.planet_terrain_mesh);
+		generate_planet_terrain_mesh_quad(r.globe, r.planet_terrain_mesh);
 	}
 
 	if (use_terrain_mesh && !floating_islands && !r.globe.region_elevation_pre_erosion.region_elevation.empty()) {
@@ -280,14 +273,7 @@ void WorldGenJob::worker_main(SharedState *state) {
 		pre_globe.region_elevation        = r.globe.region_elevation_pre_erosion;
 		pre_globe.region_moisture         = r.globe.region_moisture;
 		pre_globe.river_flow              = r.globe.river_flow;
-		assign_triangle_values_from_regions(
-			pre_globe.topology, pre_globe.region_elevation, pre_globe.region_moisture, pre_globe.triangle_values);
-		prepare_elevation_for_terrain_mesh(pre_globe.topology,
-		                                   pre_globe.region_neighbours,
-		                                   pre_globe.region_triangle_rings,
-		                                   pre_globe.region_elevation.region_elevation,
-		                                   pre_globe.triangle_values.triangle_elevation);
-		generate_planet_terrain_mesh_dual_folded(pre_globe, r.planet_terrain_mesh_pre_erosion);
+		generate_planet_terrain_mesh_quad(pre_globe, r.planet_terrain_mesh_pre_erosion);
 	}
 
 	if (use_terrain_mesh) {
@@ -300,7 +286,7 @@ void WorldGenJob::worker_main(SharedState *state) {
 		                  + Cstring::to_string(r.planet_terrain_mesh.vertices.size()) + " indices="
 		                  + Cstring::to_string(r.planet_terrain_mesh.indices.size()) + " mesh_tris="
 		                  + Cstring::to_string(mesh_tris) + " style="
-		                  + (floating_islands ? String("floating_islands") : String("rbg_quad_fold")));
+		                  + (floating_islands ? String("floating_islands") : String("icosphere_quad")));
 	}
 
 	log_line(r, "[WorldGen] Done.");

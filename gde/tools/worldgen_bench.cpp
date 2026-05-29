@@ -238,10 +238,12 @@ double terrain_mesh_inward_tri_percent(const PlanetTerrainMesh &mesh) {
 bool validate_terrain_mesh(Size regions, Size triangles, const PlanetTerrainMesh &mesh, bool gate) {
 	const Size mesh_tris  = mesh.indices.size() / 3;
 	const Size mesh_verts = mesh.vertices.size();
-	const Size expected_verts = regions + triangles;
-	bool failed               = false;
+	const Size expected_verts_quad = regions;
+	const Size expected_tris_quad  = triangles;
+	bool failed                    = false;
 
-	Ciostream::cout() << "  [validate] expected_verts=" << expected_verts
+	Ciostream::cout() << "  [validate] expected_verts(icosphere)=" << expected_verts_quad
+	                  << " expected_tris=" << expected_tris_quad
 	                  << " actual_verts=" << mesh_verts
 	                  << " mesh_tris=" << mesh_tris << '\n';
 
@@ -249,8 +251,11 @@ bool validate_terrain_mesh(Size regions, Size triangles, const PlanetTerrainMesh
 		Ciostream::cerr() << "  [validate] WARN: verts == 3 * tris (duplicated per-triangle pattern; rebuild GDExtension)\n";
 	}
 
-	if (mesh_verts != expected_verts) {
-		Ciostream::cerr() << "  [validate] WARN: verts != regions + triangles (shared dual-cell fan expects equality)\n";
+	if (mesh_verts != expected_verts_quad) {
+		Ciostream::cerr() << "  [validate] WARN: verts != region count (icosphere quad mesh)\n";
+	}
+	if (mesh_tris != expected_tris_quad) {
+		Ciostream::cerr() << "  [validate] WARN: mesh_tris != topology triangle count\n";
 	}
 
 	const double pct = terrain_mesh_inward_tri_percent(mesh);

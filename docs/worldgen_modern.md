@@ -221,11 +221,47 @@ Biomes map from temperature, moisture, and elevation. Example lookup:
 
 ## 10. Final terrain mesh
 
-Displace vertices along the sphere normal:
+### Height field on a fixed icosphere
+
+Growth keeps **connectivity fixed** for one generation (`topology.sites` + `topology.triangles` from `IcosphereEngine`). Optional **jitter** nudges sites tangentially once at the start, then renormalises; it does not model plate advection.
+
+All geology, climate, flood, rivers, and erosion mutate **scalar fields** (`region_elevation`, `triangle_elevation`, …). Plate tectonics change the elevation profile, not vertex positions in 3D.
+
+### Radial derivation (not a per-stage “rebuild”)
+
+The preview/game shell is **derived once** at `terrain_mesh` via `generate_planet_terrain_mesh_quad`:
 
 ```text
-vertexPosition = normalize(vertexPosition) * (planetRadius + elevation * heightScale)
+dir   = normalize(topology.sites[r])
+pos   = dir * (1 + k_planet_elevation_scale * region_elevation[r])
 ```
+
+`k_planet_elevation_scale` is `0.08` in [`PlanetTerrainMesh.hpp`](../gde/sim_core/include/world/PlanetTerrainMesh.hpp).
+
+This is a **design choice** (RBG / 1843-style spherical height field), not the only possible planet model. It guarantees:
+
+- one height per region along a fixed ray from the planet centre;
+- no horizontal vertex drift from erosion or rivers;
+- cheap O(regions) export; same rule as preview river segments in `WorldGenPreviewExport`.
+
+Erosion does **not** move mesh vertices between stages. `apply_hydraulic_erosion` edits `triangle_elevation`; `sync_region_elevation_from_triangles` averages back onto regions; then `stage_terrain_mesh` fills vertex buffers **once**.
+
+Equivalent options: update cached `dir[r]` in place after scalar changes, or displace in a vertex shader — same maths, no topology regen.
+
+### Dual mesh vs quad shell
+
+| Structure | Role |
+|-----------|------|
+| **Half-edge / dual triangles** | River downflow, flow accumulation, hydraulic erosion (scalar graph) |
+| **Quad icosphere mesh** | Watertight render shell: one triangle per topology face, region vertices only |
+
+Rivers solve on **triangle** elevations; the quad shell uses **region** elevation (after triangle values are synced and smoothed). Fine valley detail can be softened at export — that is separate from radial vs non-radial displacement.
+
+### Streaming (no overworld mesh required)
+
+Gameplay streaming ([`epic_game_world_streaming.md`](epic_game_world_streaming.md)) should sample a **PlanetSurfaceAtlas** (`unit_dir` → plate, elevation, moisture, biome). Chunks add local tangent-space detail; they do not need to regenerate or slide the icosphere.
+
+`PlanetTerrainMesh` remains optional debug/export geometry for Godot preview.
 
 Rendering may add normal maps, detail noise, and tessellation on top of the displaced mesh.
 

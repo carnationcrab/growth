@@ -13,7 +13,7 @@ Vec3 normalised_vec3(const Vec3 &v) {
 	return (l > 0.0f) ? (v / l) : Vec3(0.0f, 0.0f, 0.0f);
 }
 
-constexpr float k_elevation_scale = 0.08f;
+constexpr float k_elevation_scale = k_planet_elevation_scale;
 
 /// River strength per Delaunay triangle: mean of the three half-edge flows. Used by both the
 /// dual-folded and quad meshes.
@@ -82,23 +82,31 @@ void generate_planet_terrain_mesh_quad(const PlanetGlobe &globe, PlanetTerrainMe
 	out.normals.clear();
 	out.indices.clear();
 	out.river_strength.clear();
+	out.vertex_elevation.clear();
+	out.vertex_moisture.clear();
 
-	const SphereTopology &topology   = globe.topology;
-	const Vector<float> &r_elevation = globe.region_elevation.region_elevation;
-	const RiverFlow &river           = globe.river_flow;
-	const size_t num_regions         = topology.sites.size();
-	const size_t num_tri             = topology.triangles.size();
+	const SphereTopology &topology    = globe.topology;
+	const Vector<float> &r_elevation  = globe.region_elevation.region_elevation;
+	const Vector<float> &r_moisture   = globe.region_moisture.region_moisture;
+	const RiverFlow &river            = globe.river_flow;
+	const size_t num_regions          = topology.sites.size();
+	const size_t num_tri              = topology.triangles.size();
 	if (num_regions == 0 || num_tri == 0)
 		return;
 
-	out.vertices.reserve(num_regions);
-	out.normals.reserve(num_regions);
+	out.vertices.resize(num_regions);
+	out.normals.resize(num_regions);
+	out.vertex_elevation.resize(num_regions);
+	out.vertex_moisture.resize(num_regions);
 	for (size_t r = 0; r < num_regions; ++r) {
 		const Vec3 dir   = normalised_vec3(topology.sites[r]);
 		const float elev = (r < r_elevation.size()) ? r_elevation[r] : 0.0f;
+		const float moist = (r < r_moisture.size()) ? r_moisture[r] : 0.0f;
 		const Vec3 pos   = dir * (1.0f + k_elevation_scale * elev);
-		out.vertices.push_back(pos);
-		out.normals.push_back(normalised_vec3(pos));
+		out.vertices[r]          = pos;
+		out.normals[r]           = normalised_vec3(pos);
+		out.vertex_elevation[r]  = elev;
+		out.vertex_moisture[r]   = moist;
 	}
 
 	out.indices.reserve(num_tri * 3);
@@ -108,6 +116,8 @@ void generate_planet_terrain_mesh_quad(const PlanetGlobe &globe, PlanetTerrainMe
 		out.indices.push_back(static_cast<uint32_t>(tri[1]));
 		out.indices.push_back(static_cast<uint32_t>(tri[2]));
 	}
+
+	ensure_planet_terrain_mesh_outward_winding(out);
 
 	out.river_strength.resize(num_tri);
 	parallel::for_range(0, num_tri, 4096, [&](size_t t) {
@@ -164,21 +174,27 @@ void generate_planet_terrain_mesh_dual_folded(const PlanetGlobe &globe, PlanetTe
 		out.vertex_moisture[v]   = moist;
 	});
 
-	out.indices.resize(num_sides * 3u);
-	out.river_strength.resize(num_sides);
+	out.indices.clear();
+	out.river_strength.clear();
+	out.indices.reserve(num_sides * 3u / 2u);
+	out.river_strength.reserve(num_sides / 2u);
 
 	for (size_t s = 0; s < num_sides; ++s) {
-		const size_t r1   = mesh.s_begin_r[s];
 		const size_t twin = mesh.s_twin_s[s];
-		const size_t r2   = (twin != SphereHalfEdgeMesh::k_invalid) ? mesh.s_begin_r[twin] : r1;
-		const size_t t1   = mesh.s_inner_t[s];
+		// Each undirected edge contributes two opposite-facing triangles (s and twin). Emitting
+		// both on one shell yields ~50% inward tris before winding repair; per-triangle flips then
+		// disagree across shared edges (fuzzy preview). Keep one canonical directed side only.
+		if (twin != SphereHalfEdgeMesh::k_invalid && s > twin)
+			continue;
 
-		// Continuous dual surface: one triangle per half-edge (r1, r2, inner triangle).
-		// Coast/river ridge folding is disabled so the preview shell is watertight.
-		out.indices[s * 3u + 0] = static_cast<uint32_t>(r1);
-		out.indices[s * 3u + 1] = static_cast<uint32_t>(r2);
-		out.indices[s * 3u + 2] = static_cast<uint32_t>(num_regions + t1);
-		out.river_strength[s] = (s < river.s_flow.size()) ? river.s_flow[s] : 0.0f;
+		const size_t r1 = mesh.s_begin_r[s];
+		const size_t r2 = (twin != SphereHalfEdgeMesh::k_invalid) ? mesh.s_begin_r[twin] : mesh.s_end_r[s];
+		const size_t t1 = mesh.s_inner_t[s];
+
+		out.indices.push_back(static_cast<uint32_t>(r1));
+		out.indices.push_back(static_cast<uint32_t>(r2));
+		out.indices.push_back(static_cast<uint32_t>(num_regions + t1));
+		out.river_strength.push_back((s < river.s_flow.size()) ? river.s_flow[s] : 0.0f);
 	}
 
 	ensure_planet_terrain_mesh_outward_winding(out);

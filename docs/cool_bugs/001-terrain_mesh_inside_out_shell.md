@@ -35,7 +35,13 @@ Godot culls **back faces** (`CullMode.Back`). Only **front-facing** triangles (C
 
 So the visual is exactly **inconsistent or inverted winding + back-face culling**, not missing mesh data.
 
-### 2. Sim mesh generation (backend) — pipeline-dependent
+### 2. Sim mesh generation (backend) — dual vs icosphere (math)
+
+**Canonical surface (API icosphere):** `globe.topology` — unit-sphere sites + triangle faces from `IcosphereEngine`. Region fields (`region_elevation`, …) live on sites. The correct closed shell is **one triangle per topology face**, vertices `dir * (1 + 0.08 * elevation)` → `generate_planet_terrain_mesh_quad`.
+
+**Dual half-edge export (`generate_planet_terrain_mesh_dual_folded`):** one triangle per **directed** half-edge `(r_begin, r_end, inner_triangle)`. Each undirected region edge appears **twice** — `(r1, r2, T)` and `(r2, r1, T')` — with opposite orientation in 3D. Before repair, ~**half** of those triangles have `n·centre < 0` (not a bug in the centroid test; the pair are opposite-facing sheets). Per-triangle `ensure_planet_terrain_mesh_outward_winding` flips each tri independently, so neighbours along shared edges can disagree → **mottled / fuzzy** silhouette even when inward % drops to 0% in bench.
+
+**Fix (2026-05):** pipeline `terrain_mesh` stage uses **quad** (icosphere) mesh; dual export keeps only canonical half-edges (`s < twin`) when used. See [worldgen_modern.md §10](../worldgen_modern.md) for why positions are **radially derived once** from elevation scalars (not advected between stages).
 
 `worldgen_bench` validates the exported mesh in **sim Z-up** with the same rule as presentation should use:
 

@@ -102,6 +102,8 @@ namespace {
 		            ctx.globe->river_flow);
 	}
 
+	// Erosion edits triangle_elevation scalars only; region_elevation is re-synced and smoothed.
+	// Mesh vertices are not moved here — stage_terrain_mesh derives positions from final scalars.
 	void stage_erosion(PlanetGlobePipelineContext &ctx) {
 		ctx.globe->region_elevation_pre_erosion.region_elevation = ctx.globe->region_elevation.region_elevation;
 		apply_hydraulic_erosion(ctx.globe->mesh, ctx.globe->river_flow, ctx.globe->triangle_values.triangle_elevation);
@@ -121,14 +123,9 @@ namespace {
 
 	void stage_terrain_mesh(PlanetGlobePipelineContext &ctx) {
 		if (ctx.planet_terrain_mesh) {
-			assign_triangle_values_from_regions(
-				ctx.globe->topology, ctx.globe->region_elevation, ctx.globe->region_moisture, ctx.globe->triangle_values);
-			prepare_elevation_for_terrain_mesh(ctx.globe->topology,
-			                                   ctx.globe->region_neighbours,
-			                                   ctx.globe->region_triangle_rings,
-			                                   ctx.globe->region_elevation.region_elevation,
-			                                   ctx.globe->triangle_values.triangle_elevation);
-			generate_planet_terrain_mesh_dual_folded(*ctx.globe, *ctx.planet_terrain_mesh);
+			// Single export pass: pos = normalise(site) * (1 + k * region_elevation). Connectivity fixed;
+			// half-edge mesh is only for river/erosion graphs (see generate_planet_terrain_mesh_dual_folded).
+			generate_planet_terrain_mesh_quad(*ctx.globe, *ctx.planet_terrain_mesh);
 		}
 	}
 

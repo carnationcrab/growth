@@ -7,6 +7,10 @@
 
 namespace growth {
 
+/// Radial height-field scale for overworld shells: radius = |site_unit| * (1 + k * elevation).
+/// Erosion and rivers mutate elevation scalars only; mesh export derives positions once.
+constexpr float k_planet_elevation_scale = 0.08f;
+
 struct PlanetGlobe;
 
 /// Render-ready planet terrain mesh produced from a PlanetGlobe.
@@ -30,15 +34,14 @@ enum class PlanetTerrainMeshMethod {
 /// Reads globe.topology + region_triangle_rings + mesh.t_xyz (legacy Voronoi cell fan).
 void generate_planet_terrain_mesh_voronoi_triangles(const PlanetGlobe &globe, PlanetTerrainMesh &out);
 
-/// Displaced-sphere method (legacy): Delaunay-triangle mesh of sites, vertices pushed radially.
-/// Reads globe.topology.triangles directly.
+/// Canonical preview/game shell: fixed icosphere connectivity; one vertex per region.
+/// Positions are derived (not advected): pos = normalise(site) * (1 + k_planet_elevation_scale * elev).
+/// Runs once after the scalar pipeline (elevation, flood, rivers, erosion); no per-stage mesh rebuild.
 void generate_planet_terrain_mesh_quad(const PlanetGlobe &globe, PlanetTerrainMesh &out);
 
-/// Pipeline-canonical dual mesh (RBG QuadGeometry): region vertices plus triangle-centroid
-/// vertices, one triangle per half-edge (r_begin, r_end, inner triangle). Continuous watertight
-/// shell in sim Z-up space. Indices are corrected to face outward (centroid vs geometric normal).
-/// Godot still applies a global chirality flip when building ArrayMesh. Fills vertex_elevation /
-/// vertex_moisture for preview map layers.
+/// Dual half-edge mesh (RBG): region + triangle-centroid vertices. Emits one triangle per
+/// directed half-edge (canonical s < twin only). Use quad mesh for the solid icosphere shell;
+/// dual remains for experiments / folded coast variants.
 void generate_planet_terrain_mesh_dual_folded(const PlanetGlobe &globe, PlanetTerrainMesh &out);
 
 /// Per-triangle: swap winding when geometric normal points toward the origin (inward shell).

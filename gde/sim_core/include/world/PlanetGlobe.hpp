@@ -14,8 +14,12 @@ namespace growth {
 
 /// Full globe result that flows through every world-gen stage.
 ///
+/// Height-field model: topology.sites are fixed directions (optional tangent jitter once);
+/// elevation/moisture/plates are scalars on regions. Rivers use triangle_values on the dual mesh;
+/// optional PlanetTerrainMesh derives 3D positions radially at export — not between stages.
+///
 /// Canonical fields (post-refactor):
-///   topology              - unit-sphere sites + Delaunay triangles
+///   topology              - unit-sphere sites + icosphere triangles
 ///   mesh                  - half-edge structure derived from topology
 ///   region_neighbours     - CSR adjacency over regions; built once, reused by every stage
 ///   region_triangle_rings - CSR mapping each region to its surrounding triangle indices
