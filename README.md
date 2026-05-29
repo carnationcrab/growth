@@ -1,29 +1,69 @@
 # Growth
 
-Godot 4 project with an optional C++ GDExtension backend for the sim. You can run the game with or without building the extension.
+Godot **4.6** game with a **C#** front end and an optional **C++ GDExtension** sim backend (terrain, overworld generation, chunk streaming). You can run the editor with a stub sim only, or build the native extension for the full simulation.
+
+## New here?
+
+| Step | Action |
+|------|--------|
+| 1 | **[Install guide](docs/install.md)** — Godot, .NET, Python, MSVC, godot-cpp |
+| 2 | **Windows onboarding** — `.\scripts\setup.ps1` (installs, builds, can launch Godot) |
+| 3 | **Linux / macOS** — `./scripts/setup.sh` (native build; install Godot manually) |
+| 4 | **Docs index** — [docs/README.md](docs/README.md) |
+
+### Setup script (Windows)
+
+```powershell
+.\scripts\setup.ps1              # winget deps (optional), pip, godot-cpp, build.ps1, launch Godot
+.\scripts\setup.ps1 -Quick       # checklist + open install links only
+.\scripts\setup.ps1 -SkipWinget   # skip package manager
+.\scripts\setup.ps1 -SkipBuild    # prerequisites only
+.\scripts\setup.ps1 -DownloadGodot  # fetch portable Godot 4.6 .NET into .local/godot/
+```
+
+Requires PowerShell 5.1+ (default on Windows 10/11). See [docs/install.md](docs/install.md) for manual steps and troubleshooting.
 
 ## Running the project
 
-1. **Open in Godot 4.x**  
-   Open the project folder in the Godot editor (use **Project → Import** and select this directory, or open `project.godot` if present).
+1. **Open in Godot 4.6 (.NET)**  
+   Import this folder or open `project.godot`. Use the **.NET / Mono** editor build, not the standard build without C# support.
 
-2. **Run the main scene**  
-   Set the main scene to the one that boots the sim (e.g. the scene that uses `Main.gd`), then press **Play** or **F5**.  
-   The world gen menu appears first; use **Generate** to apply settings and continue.
+2. **Run** — main scene `res://godot/main/Main.tscn` (**F5**). The world gen menu appears first; use **Generate** to continue.
 
 3. **Stub vs C++ backend**
-   - **Without the extension:** If `gde/growth_sim.gdextension` is missing or disabled (e.g. you use `growth_sim.gdextension.disabled`), Godot does not load the C++ DLL. The **SimAPI** autoload uses a stub: the game runs but the sim is a no-op (no real terrain, planet gen, etc.). You’ll see `[SimAPI] GrowthSim not found; using stub backend` in the output.
-   - **With the extension:** After building the GDExtension and enabling it (see **gde/README.md**), the DLL is loaded and SimAPI uses the C++ **GrowthSim** class. You’ll see `[SimAPI] using C++ GrowthSim backend`.
+   - **Without the extension:** If `gde/growth_sim.gdextension` is missing or disabled, **SimAPI** uses a stub (`[SimAPI] GrowthSim not found; using stub backend`). UI and flow work; sim logic is a no-op.
+   - **With the extension:** After building (below), you should see `[SimAPI] using C++ GrowthSim backend`.
 
-So: you can always run the project; building the extension is only needed for the real sim backend.
+## Native extension (C++)
 
-## When you change the GDExtension
+Code lives under **`gde/`**. Full build instructions: **[gde/README.md](gde/README.md)**.
 
-Code for the extension lives under **gde/** (C++ and GDExtension glue). For a concise build and update workflow, see **gde/README.md**. In short:
+```powershell
+cd gde
+.\build.ps1    # after godot-cpp is built; see docs/install.md
+```
 
-- **Build the extension** from `gde/`: run **`gde/build.ps1`** (Windows) to build and copy the DLL to the name Godot expects; see **gde/README.md** for prerequisites (godot-cpp, SCons).
-- **Enable it** by using `growth_sim.gdextension` (and having the DLL in `gde/bin/`); disable by renaming to `growth_sim.gdextension.disabled` if you want to run without the DLL.
-- **After C++ changes:** run `.\build.ps1` again; no need to restart Godot (the new DLL is loaded on next run).
-- **If you add new `.cpp` files** under `gde/sim_core/src/` or `gde/src/`, add them to the `sources` list in **gde/SConstruct** so they are compiled and linked.
+- Enable **`gde/growth_sim.gdextension`** and place the DLL in **`gde/bin/`**.
+- New `.cpp` files under `gde/sim_core/src/` or `gde/src/` must be listed in **`gde/SConstruct`**.
 
-Details, prerequisites, and platform notes: **gde/README.md**.
+## Development
+
+| Task | Command |
+|------|---------|
+| Moddability lint | `python tools/lint_moddability.py` |
+| SConstruct sources | `python tools/lint_sconstruct_sources.py` |
+| Pre-commit hooks | `pip install pre-commit && pre-commit install` |
+| New C++ / templates | [templates/README.md](templates/README.md) |
+
+Architecture and content packs: **[docs/moddability.md](docs/moddability.md)**.
+
+## Repository layout
+
+| Path | Purpose |
+|------|---------|
+| `godot/` | Scenes, C# UI, autoload **SimAPI** |
+| `gde/` | GDExtension + **sim_core** (C++) |
+| `data/` | Def packs, manifests, game profile |
+| `docs/` | Design docs, epics, install guide |
+| `tools/` | Linters, templates, bench gate |
+| `scripts/` | Onboarding (`setup.ps1`, `setup.sh`) |

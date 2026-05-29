@@ -1,5 +1,15 @@
 # Growth documentation
 
+## Getting started
+
+| Doc | Purpose |
+|-----|---------|
+| **[install.md](install.md)** | Install Godot, .NET, toolchain, godot-cpp, GDExtension |
+| [../README.md](../README.md) | Project overview and `scripts/setup.ps1` |
+| [../gde/README.md](../gde/README.md) | Build and update the C++ extension |
+
+---
+
 ## Terminology
 
 | Term | Meaning |

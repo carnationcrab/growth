@@ -15,6 +15,8 @@ The Godot autoload **SimAPI** (GDScript) is the single door; it uses the C++ **G
 
 ## Build (Windows, 4.x)
 
+Full install prerequisites (Godot, .NET, MSVC, winget): **[docs/install.md](../docs/install.md)**. Automated Windows path: `.\scripts\setup.ps1` from the repo root.
+
 **Prerequisite:** SCons is required to build godot-cpp. Install it with Python:
 
 ```bash
